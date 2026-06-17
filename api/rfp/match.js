@@ -1,4 +1,5 @@
 import { matchRequirementToCapabilities } from "../../bid-engine/lib/datasetAnalysis.js";
+import { retrieveAndMatch, buildCapabilityIndex } from "../../bid-engine/lib/semanticRetriever.js";
 import { CAPABILITY_LIBRARY } from "../../bid-engine/lib/sampleData.js";
 import { requireAuthenticatedUser, requireWorkspaceOwner } from "../_lib/requestAuth.js";
 import { getSupabaseAdminOrNull } from "../_lib/supabase.js";
@@ -96,55 +97,51 @@ export default async function handler(req, res) {
       }));
     }
 
-    const entityContext = clientEntities || {
-      deadlines: requirements
-        .filter((req) => req.requirement_type === "deadline")
-        .map((req) => req.extracted_value || req.requirement_text)
-        .filter(Boolean),
-      budgets: requirements
-        .filter((req) => /\bbudget|pkr|usd|\$|rs\.?/i.test(`${req.extracted_value || ""} ${req.requirement_text || ""}`))
-        .map((req) => req.extracted_value || req.requirement_text)
-        .filter(Boolean),
-      mandatory_clauses: requirements
-        .filter((req) => req.requirement_type === "mandatory")
-        .map((req) => req.requirement_text)
-        .filter(Boolean)
-        .slice(0, 10),
-    };
+    // ── RAG Pipeline: Vector Search + LLM Reranking ────────────────────────
+    // Step 1: Build the capability vector index (embedding all capabilities)
+    console.log(`[RAG Match] Building vector index for ${capabilities.length} capabilities...`);
+    await buildCapabilityIndex(capabilities, user.id || 'sample');
 
     const { auditCompliance } = await import("../../bid-engine/lib/agents/auditor.js");
 
-    // Use AI Auditor for deep compliance check
-    // We'll perform AI matching for the more critical requirements in parallel
+    // Step 2: For each requirement, run the full RAG pipeline
     const matchPool = requirements.slice(0, 10);
     const matches = await Promise.all(matchPool.map(async (requirement, index) => {
-      try {
-        const normalized = normalizeRequirement(requirement, index);
-        // Find best candidates using keyword matcher first to give context to the Auditor
-        const heuristicMatch = matchRequirementToCapabilities(normalized, capabilities, { entities: entityContext });
+      const normalized = normalizeRequirement(requirement, index);
 
-        // Use AI Auditor for the heavy lifting
+      try {
+        // Phase A: Semantic Vector Retrieval + LLM Reranking
+        const ragResult = await retrieveAndMatch(normalized, capabilities, user.id || 'sample', {
+          topK: 5,
+          skipRerank: false,
+        });
+
+        // Phase B: AI Auditor deep compliance verification (using retrieved evidence)
         const aiMatch = await auditCompliance(normalized, capabilities);
 
         return {
           requirement_id: normalized.id,
           requirement_text: normalized.requirement_text,
-          compliance_status: aiMatch.compliance_status || heuristicMatch.compliance_status,
-          confidence_score: aiMatch.confidence || heuristicMatch.confidence,
-          evidence: aiMatch.evidence || heuristicMatch.evidence,
-          reasoning: aiMatch.reasoning || heuristicMatch.reasoning,
+          compliance_status: aiMatch.compliance_status || ragResult.compliance_status,
+          confidence_score: aiMatch.confidence || ragResult.confidence,
+          evidence: ragResult.evidence || aiMatch.evidence,
+          reasoning: `[RAG] ${ragResult.reasoning} [Auditor] ${aiMatch.reasoning || ''}`.trim(),
+          retrieval_method: ragResult.retrieval_method,
+          retrieved_chunks: ragResult.retrieved_chunks,
         };
       } catch (err) {
-        console.error(`AI Audit failed for requirement ${requirement.id}:`, err);
-        const normalized = normalizeRequirement(requirement, index);
-        const match = matchRequirementToCapabilities(normalized, capabilities, { entities: entityContext });
+        console.error(`RAG pipeline failed for requirement ${normalized.id}:`, err.message);
+        // Fallback to keyword heuristic if RAG fails
+        const match = matchRequirementToCapabilities(normalized, capabilities, {});
         return {
           requirement_id: normalized.id,
           requirement_text: normalized.requirement_text,
           compliance_status: match.compliance_status,
           confidence_score: match.confidence,
           evidence: match.evidence,
-          reasoning: match.reasoning,
+          reasoning: `[Fallback] ${match.reasoning}`,
+          retrieval_method: 'keyword_fallback',
+          retrieved_chunks: [],
         };
       }
     }));
@@ -188,7 +185,7 @@ export default async function handler(req, res) {
       matches,
       requirements: requirementsWithMatches,
       capability_count: capabilities.length,
-      extracted_entities: entityContext,
+      retrieval_pipeline: "vector_search_with_llm_rerank",
     });
   } catch (err) {
     console.error("Failure in matching route:", err);

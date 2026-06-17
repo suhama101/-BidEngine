@@ -1,28 +1,33 @@
 "use client";
 
 import React, { useState } from "react";
-import { FileText, Award, ShieldAlert, LogOut, CheckCircle, Menu, X, Cpu } from "lucide-react";
+import { FileText, Award, ShieldAlert, LogOut, CheckCircle, Menu, X, Cpu, User } from "lucide-react";
 
 export default function Navbar({ activeTab, setActiveTab, userEmail, onSignOut }) {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   const menuItems = [
-    { id: "upload",       step: "1", label: "Upload RFP",        icon: FileText  },
-    { id: "requirements", step: "2", label: "Requirements",      icon: CheckCircle },
-    { id: "compliance",   step: "3", label: "Compliance Check",  icon: ShieldAlert },
-    { id: "draft",        step: "4", label: "AI Draft",          icon: Cpu       },
-    { id: "score",        step: "5", label: "Win Score",         icon: Award     },
+    { id: "upload", step: "1", label: "Upload RFP", icon: FileText },
+    { id: "requirements", step: "2", label: "Requirements", icon: CheckCircle },
+    { id: "compliance", step: "3", label: "Compliance Check", icon: ShieldAlert },
+    { id: "draft", step: "4", label: "AI Draft", icon: Cpu },
+    { id: "score", step: "5", label: "Win Score", icon: Award },
   ];
 
   return (
-    <nav className="w-full bg-[#0d0d16] border-b border-slate-800/80 sticky top-0 z-50 shadow-lg" id="bid-engine-nav">
-      {/* Main nav bar row */}
-      <div className="px-6 lg:px-8 h-16 flex items-center justify-between max-w-7xl mx-auto w-full">
-        <div className="flex items-center space-x-8">
-          <div className="flex-shrink-0 flex items-center space-x-2 text-indigo-400">
-            <Cpu className="h-8 w-8 animate-pulse text-indigo-500" />
-            <span className="font-sans font-extrabold text-xl tracking-tight text-white">
-              BidEngine<span className="text-indigo-500">.AI</span>
+    <nav className="w-full bg-white/70 backdrop-blur-xl border-b border-sky-100 sticky top-0 z-50 transition-all duration-500" id="bid-engine-nav">
+      {/* Dynamic Progress Indicator (Sticky Header) */}
+      <div className="absolute bottom-0 left-0 h-[2px] bg-sky-500 transition-all duration-700 ease-in-out shadow-[0_0_8px_rgba(14,165,233,0.5)]"
+        style={{ width: `${((menuItems.findIndex(i => i.id === activeTab) + 1) / menuItems.length) * 100}%` }} />
+
+      <div className="px-6 lg:px-8 h-20 flex items-center justify-between max-w-7xl mx-auto w-full">
+        <div className="flex items-center space-x-12">
+          <div className="flex-shrink-0 flex items-center space-x-3 group cursor-pointer">
+            <div className="bg-sky-500 p-2 rounded-2xl shadow-xl transition-all duration-500 group-hover:scale-110 group-hover:rotate-3">
+              <Cpu className="h-7 w-7 text-white animate-pulse" />
+            </div>
+            <span className="font-sans font-black text-2xl tracking-tighter text-slate-900 group-hover:text-sky-600 transition-colors">
+              BidEngine<span className="text-sky-500">.AI</span>
             </span>
           </div>
 
@@ -35,39 +40,39 @@ export default function Navbar({ activeTab, setActiveTab, userEmail, onSignOut }
                 <button
                   key={item.id}
                   onClick={() => setActiveTab && setActiveTab(item.id)}
-                  className={`flex flex-col items-center px-3 py-2 rounded-md text-xs font-medium transition-all duration-200 outline-none cursor-pointer min-w-[90px] ${
-                    isActive
-                      ? "bg-indigo-600 text-white shadow-md shadow-indigo-600/20"
-                      : "text-slate-400 hover:text-white hover:bg-slate-800"
-                  }`}
+                  className={`flex items-center gap-3 px-6 py-3 rounded-2xl text-xs font-black transition-all duration-300 outline-none cursor-pointer group uppercase tracking-widest ${isActive
+                    ? "bg-sky-500 text-white shadow-xl scale-[1.03]"
+                    : "text-slate-400 hover:text-slate-900 hover:bg-sky-50"
+                    }`}
                 >
-                  <div className="flex items-center gap-1.5">
-                    <Icon className="h-3.5 w-3.5" />
-                    <span className="font-bold">{item.label}</span>
-                  </div>
-                  <span className={`text-[9px] font-mono mt-0.5 ${isActive ? "text-indigo-200" : "text-slate-600"}`}>
-                    STEP {item.step}
-                  </span>
+                  <Icon className={`h-4 w-4 transition-transform duration-300 ${isActive ? "scale-110" : "group-hover:scale-110"}`} />
+                  <span>{item.label}</span>
                 </button>
               );
             })}
           </div>
         </div>
 
-        {/* User Section / Access controls */}
-        <div className="hidden lg:flex items-center space-x-4">
+        {/* User Section */}
+        <div className="hidden lg:flex items-center space-x-6">
           {userEmail && (
-            <div className="text-slate-400 text-xs font-mono">
-              Active Bidding: <span className="text-indigo-400">{userEmail}</span>
+            <div className="flex items-center gap-4 bg-slate-50 border border-slate-100 px-5 py-2.5 rounded-2xl shadow-sm group hover:border-sky-200 transition-all">
+              <div className="w-8 h-8 rounded-xl bg-yellow-400 flex items-center justify-center text-yellow-900 shadow-sm transition-transform group-hover:rotate-6">
+                <User className="h-4 w-4" />
+              </div>
+              <div className="flex flex-col">
+                <span className="text-[8px] font-black text-slate-400 uppercase tracking-widest mb-0.5">Active Session</span>
+                <span className="text-slate-900 text-[10px] font-black font-mono tracking-tight">{userEmail}</span>
+              </div>
             </div>
           )}
           {onSignOut && (
             <button
               onClick={onSignOut}
-              className="flex items-center space-x-1.5 px-3 py-1.5 bg-slate-850 hover:bg-red-955 hover:text-red-300 rounded text-xs text-slate-400 border border-slate-855 transition cursor-pointer"
+              className="flex items-center space-x-2 px-6 py-3 bg-white hover:bg-rose-50 border border-slate-200 hover:border-rose-200 rounded-2xl text-xs font-black text-slate-500 hover:text-rose-500 transition-all duration-300 group cursor-pointer shadow-sm"
             >
-              <LogOut className="h-3.5 w-3.5" />
-              <span>Exit Workspace</span>
+              <LogOut className="h-4 w-4 transition-transform group-hover:translate-x-1" />
+              <span className="uppercase tracking-widest">Sign Out</span>
             </button>
           )}
         </div>
@@ -76,16 +81,26 @@ export default function Navbar({ activeTab, setActiveTab, userEmail, onSignOut }
         <div className="lg:hidden flex items-center">
           <button
             onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-            className="inline-flex items-center justify-center p-2 rounded-md text-slate-400 hover:text-white hover:bg-slate-800 focus:outline-none"
+            className="inline-flex items-center justify-center p-3 rounded-2xl text-slate-400 hover:text-sky-600 hover:bg-sky-50 focus:outline-none transition-all"
           >
-            {mobileMenuOpen ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
+            {mobileMenuOpen ? <X className="h-7 w-7" /> : <Menu className="h-7 w-7" />}
           </button>
         </div>
       </div>
 
       {/* Mobile Menu */}
       {mobileMenuOpen && (
-        <div className="lg:hidden bg-slate-900 border-b border-slate-800 px-2 pt-2 pb-3 space-y-1 sm:px-3">
+        <div className="lg:hidden bg-white/95 backdrop-blur-2xl border-b border-sky-100 px-4 pt-4 pb-8 space-y-3 animate-in slide-in-from-top-4 duration-300">
+          <div className="px-4 py-3 mb-4 bg-yellow-50 border border-yellow-100 rounded-[1.5rem] flex items-center gap-4">
+            <div className="w-10 h-10 rounded-2xl bg-yellow-400 flex items-center justify-center text-yellow-900 shadow-md">
+              <User className="h-5 w-5" />
+            </div>
+            <div className="overflow-hidden">
+              <span className="text-[10px] font-black text-yellow-700 uppercase tracking-widest block">Active Ops Profile</span>
+              <span className="text-slate-900 text-xs font-black font-mono truncate block">{userEmail}</span>
+            </div>
+          </div>
+
           {menuItems.map((item) => {
             const Icon = item.icon;
             const isActive = activeTab === item.id;
@@ -96,32 +111,28 @@ export default function Navbar({ activeTab, setActiveTab, userEmail, onSignOut }
                   setActiveTab && setActiveTab(item.id);
                   setMobileMenuOpen(false);
                 }}
-                className={`flex items-center space-x-3 w-full px-3 py-3 rounded-md text-base font-medium transition-all ${
-                  isActive
-                    ? "bg-indigo-600 text-white"
-                    : "text-slate-400 hover:text-white hover:bg-slate-800"
-                }`}
+                className={`flex items-center space-x-4 w-full px-5 py-4 rounded-[1.5rem] text-sm font-black transition-all uppercase tracking-[0.1em] ${isActive
+                  ? "bg-sky-500 text-white shadow-xl"
+                  : "text-slate-500 hover:bg-sky-50 hover:text-sky-600"
+                  }`}
               >
                 <Icon className="h-5 w-5" />
-                <span>Step {item.step}: {item.label}</span>
+                <span>{item.label}</span>
               </button>
             );
           })}
 
-          {userEmail && (
-            <div className="px-3 py-2 text-slate-500 font-mono text-xs border-t border-slate-800">
-              User: <span className="text-indigo-400">{userEmail}</span>
-            </div>
-          )}
-          {onSignOut && (
-            <button
-              onClick={onSignOut}
-              className="flex items-center space-x-2 w-full px-3 py-3 text-red-400 hover:bg-slate-800 rounded-md text-base"
-            >
-              <LogOut className="h-5 w-5" />
-              <span>Exit Workspace</span>
-            </button>
-          )}
+          <div className="pt-6 mt-6 border-t border-slate-100">
+            {onSignOut && (
+              <button
+                onClick={onSignOut}
+                className="flex items-center space-x-4 w-full px-6 py-5 bg-rose-50 text-rose-600 rounded-[2rem] text-xs font-black uppercase tracking-[0.2em] shadow-sm hover:bg-rose-100 transition-all"
+              >
+                <LogOut className="h-5 w-5" />
+                <span>Terminate Session</span>
+              </button>
+            )}
+          </div>
         </div>
       )}
     </nav>

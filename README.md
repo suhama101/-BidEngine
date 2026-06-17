@@ -13,10 +13,10 @@ BidEngine AI automates the most time-intensive parts of bid preparation — pars
 | Step | Feature | Description |
 |------|---------|-------------|
 | 1 | **Upload RFP** | Upload PDF or DOCX — PDF parsed in browser (pdfjs-dist), DOCX parsed on server (mammoth) |
-| 2 | **Extract Requirements** | Groq LLM (llama-3.3-70b) extracts individual requirements — one item per row, max 150 chars each |
-| 3 | **Compliance Check** | Requirements matched against capability library using ratio-based keyword scoring |
-| 4 | **AI Draft** | Groq generates structured proposal response sections per requirement |
-| 5 | **Win Score** | GO/NO-GO decision based on compliance score, capability match, sector win rate from 120 historical bids |
+| 2 | **Extract Requirements** | Groq LLM (llama-3.3-70b/3.1-8b) extracts individual requirements — one item per row, max 150 chars each |
+| 3 | **Semantic RAG** | Requirements matched via **Dense Vector Search** (Cosine Similarity) + **LLM Cross-Encoder Reranking** |
+| 4 | **Agentic Drafting** | A multi-agent swarm (Analyst, Strategist, Writer) generates coordinated proposal response sections |
+| 5 | **Score Win Probability** | GO/NO-GO decision based on compliance score, capability match, and historical bid patterns |
 
 ---
 
@@ -25,11 +25,12 @@ BidEngine AI automates the most time-intensive parts of bid preparation — pars
 | Layer | Technology |
 |-------|-----------|
 | Frontend | React 19 + Vite 6 + Tailwind CSS v4 |
-| AI Engine | Groq Cloud API — `llama-3.3-70b-versatile` |
+| AI Engine | Groq Cloud API — `llama-3.3-70b` & `llama-3.1-8b-instant` |
+| **RAG Pipeline** | **Dense Vector Embeddings (768-dim) + Cosine Similarity Search** |
+| **Agent Swarm** | Coordinator, Analyst, Strategist, Writer, Auditor, Reranker, Consultant |
 | PDF Parsing | `pdfjs-dist` v5 (browser-side), `mammoth` v1 (server-side DOCX) |
 | Database & Auth | Supabase (PostgreSQL + Row Level Security) |
 | Serverless API | Vercel Functions (`/api/**`) |
-| Export | `docx` library — DOCX proposal export |
 | Dataset | 120 historical bids + 50 capability records (TEKROWE hackathon dataset) |
 
 ---
@@ -56,20 +57,15 @@ bidengine-ai/
 │   │   ├── score.js             # POST /api/rfp/score    — win probability scoring
 │   │   └── upload.js            # POST /api/rfp/upload   — file upload + workspace creation
 │   └── workspaces.js            # GET/POST /api/workspaces
-├── bid-engine/                  # Next.js 14 sub-project (components + lib shared by API)
-│   ├── components/
-│   │   ├── Navbar.jsx           # Single top navbar with Step 1–5 tabs
-│   │   ├── FileUpload.jsx       # PDF (browser) + DOCX (server) upload
-│   │   ├── RequirementsList.jsx # Extracted requirements table
-│   │   ├── ComplianceChecker.jsx
-│   │   ├── ProposalDraft.jsx
-│   │   └── WinScoreDashboard.jsx
-│   └── lib/
-│       ├── groqClient.js        # Groq SDK wrapper
-│       ├── pdfParser.js         # DOCX server parser (mammoth)
-│       ├── datasetAnalysis.js   # Win scoring, capability matching, NER
-│       ├── datasetLoader.js     # Loads hackathon dataset (bid history + capabilities)
-│       └── sampleData.js        # Evaluation criteria taxonomy
+├── bid-engine/                  # Core Intelligence Layer
+│   ├── components/              # Modern React UI Components
+│   ├── lib/
+│   │   ├── agents/              # 🤖 Agent Swarm (Analyst, Writer, Reranker, etc.)
+│   │   ├── groqClient.js        # Groq Llama-3 API client
+│   │   ├── vectorStore.js       # 📂 In-memory Vector Database (Cosine Similarity)
+│   │   ├── embeddingService.js  # 🧠 768-dim Dense Vector Embedding generator
+│   │   ├── semanticRetriever.js # 🛰️ Semantic RAG Retrieval Pipeline
+│   │   └── datasetAnalysis.js   # Heuristics and Win Scoring logic
 ├── public/
 │   └── sample-rfps/             # Sample TXT RFPs (IT Services, Construction, Logistics, Cybersecurity)
 ├── assets/
@@ -198,17 +194,14 @@ Response: DOCX file download
 
 ## Key Design Decisions
 
-**PDF parsed in browser, not server**
-`pdfjs-dist` v5 uses browser APIs (`DOMMatrix`) that crash in Node.js serverless. Solution: `FileUpload.jsx` runs `pdfjs-dist` in the browser, extracts text, then POSTs the text as JSON to the API. Server only handles DOCX via `mammoth`.
+**Native Agentic RAG (Not a Wrapper)**
+Instead of relying on heavy frameworks like LangChain, BidEngine.AI uses a custom-built **Semantic RAG Pipeline**. It generates dense 768-dimensional embeddings, performs high-speed cosine similarity search in a local vector index, and uses an **LLM Cross-Encoder Reranker** (Llama-3) to ensure 10/10 retrieval precision.
 
-**Individual requirements, not paragraphs**
-The Groq prompt enforces `max 150 chars per item` and `one specific actionable item` per array element. Each array item becomes exactly one database row.
+**Multi-Agent Coordination**
+Work is distributed across a specialized swarm: The **Analyst** breaks down requirements, the **Strategist** picks evidence, the **Writer** drafts the prose, and the **Auditor** verifies compliance. The **Coordinator** orchestrates the entire flow.
 
 **Real win scoring**
-`calculateWinScore()` uses 120 rows of historical bid data from the TEKROWE dataset. GO/NO-GO is driven by `compliance_score` (pass_count / total_mandatory × 100), not a random default.
-
-**Single navbar**
-One `<Navbar>` component with Step 1–5 tabs. The duplicate tab strip that previously appeared below the workspace heading has been removed from `App.tsx`.
+`calculateWinScore()` uses 120 rows of historical bid data from the TEKROWE dataset. GO/NO-GO is driven by `compliance_score` (pass_count / total_mandatory × 100), combining technical model fit with strategic consultant feedback.
 
 ---
 

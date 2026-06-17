@@ -10,7 +10,22 @@ import RequirementsList from "../bid-engine/components/RequirementsList";
 import ComplianceChecker from "../bid-engine/components/ComplianceChecker";
 import ProposalDraft from "../bid-engine/components/ProposalDraft";
 import WinScoreDashboard from "../bid-engine/components/WinScoreDashboard";
-import { Cpu, FileText, CheckCircle, ShieldAlert, Award, ArrowRight, Sparkles, LayoutDashboard } from "lucide-react";
+import {
+  Cpu,
+  FileText,
+  CheckCircle,
+  ShieldAlert,
+  Award,
+  ArrowRight,
+  Sparkles,
+  LayoutDashboard,
+  Zap,
+  Activity,
+  ShieldCheck,
+  Target,
+  AlertTriangle,
+  ListChecks
+} from "lucide-react";
 
 const compactText = (value: any, max = 90) => {
   const text = String(value || "").replace(/\s+/g, " ").trim();
@@ -123,7 +138,7 @@ export default function App() {
   const [loginPassword, setLoginPassword] = useState("");
   const [signupPassword, setSignupPassword] = useState("");
   const [authMessage, setAuthMessage] = useState<{ type: "success" | "error"; text: string } | null>(null);
-  
+
   // Dashboard states
   const [currentWorkspace, setCurrentWorkspace] = useState<any>(null);
   const [rfpText, setRfpText] = useState("");
@@ -199,9 +214,9 @@ export default function App() {
         setUserEmail(data.user.email || "");
         setUserName(
           data.user.fullName ||
-            data.user.full_name ||
-            data.user.email?.split("@")[0] ||
-            "Bid Analyst"
+          data.user.full_name ||
+          data.user.email?.split("@")[0] ||
+          "Bid Analyst"
         );
         setIsAuthenticated(true);
         setScreen("dashboard");
@@ -598,218 +613,249 @@ export default function App() {
 
   if (authLoading) {
     return (
-      <div className="min-h-screen bg-[#0a0a0f] text-slate-100 flex items-center justify-center">
-        <div className="text-sm text-slate-400 font-mono">Checking session...</div>
+      <div className="min-h-screen bg-slate-50 text-slate-900 flex flex-col items-center justify-center space-y-6">
+        <div className="p-6 bg-white rounded-3xl border border-sky-100 shadow-2xl relative">
+          <div className="absolute inset-0 bg-sky-500/10 rounded-3xl blur-2xl animate-pulse" />
+          <Cpu className="h-16 w-16 text-sky-500 animate-pulse relative z-10" />
+        </div>
+        <div className="text-[10px] font-black uppercase tracking-[0.4em] text-slate-400 animate-pulse">Initializing Data Stream...</div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-[#0a0a0f] text-slate-150 flex flex-col font-sans">
+    <div className="min-h-screen bg-slate-50 text-slate-900 flex flex-col font-sans selection:bg-sky-500/20 selection:text-sky-900">
       {screen === "landing" && (
-        <div className="min-h-screen flex flex-col justify-between" id="root-landing-portal">
-          <header className="border-b border-purple-950/20 bg-[#0a0a0f] px-6 py-4 max-w-7xl mx-auto w-full flex items-center justify-between">
-            <div className="flex items-center space-x-2">
-              <Cpu className="h-6 w-6 text-purple-500" />
-              <span className="font-extrabold text-lg tracking-tight text-white">
-                BidEngine<span className="text-purple-500">.AI</span>
+        <div className="min-h-screen flex flex-col justify-between relative overflow-hidden" id="root-landing-portal">
+          {/* Background Elements */}
+          <div className="absolute top-0 left-1/2 -translate-x-1/2 w-full max-w-7xl h-full pointer-events-none -z-10">
+            <div className="absolute top-[-10%] left-[-10%] w-[60%] h-[60%] bg-sky-400/20 rounded-full blur-[120px] animate-pulse" />
+            <div className="absolute bottom-[-10%] right-[-10%] w-[60%] h-[60%] bg-yellow-400/10 rounded-full blur-[120px] animate-pulse" style={{ animationDelay: '2s' }} />
+            <div className="absolute top-[20%] right-[10%] w-[40%] h-[40%] bg-blue-400/10 rounded-full blur-[100px] animate-pulse" style={{ animationDelay: '4s' }} />
+          </div>
+
+          <header className="border-b border-slate-100 bg-white/80 backdrop-blur-xl px-8 py-6 max-w-7xl mx-auto w-full flex items-center justify-between sticky top-0 z-50">
+            <div className="flex items-center space-x-4">
+              <div className="bg-sky-500 p-2.5 rounded-2xl shadow-xl hover:rotate-6 transition-transform">
+                <Cpu className="h-7 w-7 text-white" />
+              </div>
+              <span className="font-black text-3xl tracking-tighter text-slate-900">
+                BidEngine<span className="text-sky-500">.AI</span>
               </span>
             </div>
-            <div className="flex items-center space-x-4">
-              <button onClick={() => setScreen("login")} className="text-sm font-medium text-slate-400 hover:text-white transition cursor-pointer">
+            <div className="flex items-center space-x-8">
+              <button onClick={() => setScreen("login")} className="text-sm font-black uppercase tracking-widest text-slate-400 hover:text-sky-600 transition cursor-pointer">
                 Sign In
               </button>
-              <button onClick={() => setScreen(isAuthenticated ? "dashboard" : "login")} className="px-4 py-2 bg-purple-600 hover:bg-purple-500 text-sm font-semibold text-white rounded-lg transition shadow-lg shadow-purple-600/15 flex items-center gap-1.5 cursor-pointer">
-                <span>Explore Workspace</span>
-                <LayoutDashboard className="h-4 w-4" />
+              <button
+                onClick={() => setScreen(isAuthenticated ? "dashboard" : "login")}
+                className="px-8 py-4 bg-yellow-400 text-yellow-950 hover:bg-yellow-300 text-xs font-black uppercase tracking-widest rounded-2xl transition-all duration-300 shadow-xl hover:shadow-[0_15px_25px_-5px_rgba(234,179,8,0.4)] flex items-center gap-3 cursor-pointer hover:scale-105 active:scale-95"
+              >
+                <span>Launch Workspace</span>
+                <ArrowRight className="h-4 w-4" />
               </button>
             </div>
           </header>
 
-          <section className="relative px-6 py-16 md:py-24 max-w-5xl mx-auto text-center space-y-6">
-            <div className="absolute top-0 left-1/2 -translate-x-1/2 -translate-y-12 w-96 h-96 bg-purple-600/10 rounded-full blur-3xl -z-10 pointer-events-none" />
-            
-            <div className="inline-flex items-center gap-2 px-3 py-1 bg-purple-950/80 rounded-full border border-purple-900/40 text-purple-350 text-xs font-mono font-semibold">
-              <Sparkles className="h-3 w-3 animate-pulse" />
-              <span>Optimized with Llama-3.3-70b-versatile via Groq Cloud APIs</span>
-            </div>
-
-            <h1 className="text-4xl md:text-6xl font-extrabold tracking-tight text-white leading-tight">
-              AI-Powered Proposal & <br />
-              <span className="bg-gradient-to-r from-purple-400 to-indigo-400 bg-clip-text text-transparent">
-                Bid Response Engine
-              </span>
-            </h1>
-
-            <p className="text-slate-400 text-sm md:text-base max-w-2xl mx-auto leading-relaxed">
-              Cut bid preparation time by 50%. Parse complicated Request for Proposals (RFPs), map requirements automatically, generate high-scoring drafts instantly, and calculate direct predictive success metrics.
-            </p>
-
-            <div className="flex flex-col sm:flex-row items-center justify-center gap-4 pt-4">
-              <button onClick={() => setScreen(isAuthenticated ? "dashboard" : "login")} className="cursor-pointer w-full sm:w-auto px-8 py-4 bg-purple-600 hover:bg-purple-500 text-white font-semibold rounded-xl transition duration-200 shadow-xl shadow-purple-600/20 flex items-center justify-center gap-2">
-                <span>Launch BidEngine Tool</span>
-                <ArrowRight className="h-4 w-4" />
-              </button>
-              <button onClick={() => setScreen("signup")} className="cursor-pointer w-full sm:w-auto px-8 py-4 bg-[#1a1a2e] border border-purple-950/40 hover:border-purple-500 text-slate-350 text-sm font-semibold rounded-xl transition">
-                Create Account
-              </button>
-            </div>
-          </section>
-
-          {/* Operational Metrics Section */}
-          <section className="max-w-7xl mx-auto px-6 py-2 w-full">
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6 bg-[#1a1a2e] border border-purple-955/20 rounded-2xl p-8 text-center">
-              <div>
-                <span className="text-3xl md:text-4xl font-extrabold text-purple-400 block font-mono">120+</span>
-                <p className="text-slate-400 text-xs uppercase tracking-wider font-semibold font-mono mt-1">Bids Analyzed</p>
+          <main className="flex-grow flex flex-col items-center">
+            <section className="relative px-6 py-24 md:py-40 max-w-6xl mx-auto text-center space-y-10">
+              <div className="inline-flex items-center gap-3 px-6 py-2.5 bg-sky-50 rounded-full border border-sky-100 text-sky-600 text-[10px] font-black uppercase tracking-[0.3em] animate-bounce shadow-sm">
+                <Sparkles className="h-4 w-4" />
+                <span>Next-Gen Agentic RAG Pipeline</span>
               </div>
-              <div className="border-y md:border-y-0 md:border-x border-purple-950/30 py-4 md:py-0 md:px-4">
-                <span className="text-3xl md:text-4xl font-extrabold text-purple-400 block font-mono">50%</span>
-                <p className="text-slate-400 text-xs uppercase tracking-wider font-semibold font-mono mt-1">Time Saved</p>
-              </div>
-              <div>
-                <span className="text-3xl md:text-4xl font-extrabold text-purple-400 block font-mono">85%</span>
-                <p className="text-slate-400 text-xs uppercase tracking-wider font-semibold font-mono mt-1">Win Rate</p>
-              </div>
-            </div>
-          </section>
 
-          <section className="px-6 py-12 max-w-6xl mx-auto w-full grid grid-cols-1 md:grid-cols-3 gap-6">
-            {[
-              { icon: FileText, color: "text-purple-400", title: "Auto-Extract Requirements", desc: "Instantly parse lengthy RFP documents to isolate critical technical deliverables, timelines, and mandatory clauses." },
-              { icon: CheckCircle, color: "text-blue-400", title: "Smart Match Capability", desc: "Map identified prerequisites against your organization's capability library history, identifying operational compliance proof or gaps." },
-              { icon: Cpu, color: "text-indigo-400", title: "AI Draft Responses", desc: "Write premium, professional response sections dynamically referencing historical contract successes." },
-            ].map((feature, idx) => {
-              const Icon = feature.icon;
-              return (
-                <div key={idx} className="bg-[#1a1a2e] p-6 rounded-xl border border-purple-955/20 space-y-3">
-                  <div className={`p-2 bg-[#0a0a0f] rounded w-fit ${feature.color}`}>
-                    <Icon className="h-5 w-5" />
-                  </div>
-                  <h3 className="text-base font-bold text-slate-100">{feature.title}</h3>
-                  <p className="text-slate-400 text-xs leading-relaxed">{feature.desc}</p>
+              <h1 className="text-6xl md:text-9xl font-black tracking-tighter text-slate-950 leading-[0.85]">
+                WIN MORE <br />
+                <span className="bg-gradient-to-r from-sky-500 via-blue-600 to-indigo-600 bg-clip-text text-transparent drop-shadow-[0_10px_10px_rgba(14,165,233,0.1)]">
+                  BIDS FASTER.
+                </span>
+              </h1>
+
+              <p className="text-slate-500 text-xl md:text-2xl max-w-3xl mx-auto leading-relaxed font-bold italic">
+                "Transform complex RFPs into high-scoring proposal drafts in seconds. Engineered for elite bidding teams."
+              </p>
+
+              <div className="flex flex-col sm:flex-row items-center justify-center gap-8 pt-12">
+                <button
+                  onClick={() => setScreen(isAuthenticated ? "dashboard" : "login")}
+                  className="cursor-pointer w-full sm:w-auto px-12 py-6 bg-sky-600 hover:bg-sky-500 text-white font-black text-sm rounded-[2rem] transition-all duration-300 shadow-[0_20px_40px_-10px_rgba(14,165,233,0.5)] hover:scale-[1.05] active:scale-95 flex items-center justify-center gap-4 uppercase tracking-[0.2em]"
+                >
+                  <span>Start Building Bids</span>
+                  <ArrowRight className="h-6 w-6" />
+                </button>
+                <div className="hidden sm:block w-px h-16 bg-slate-200" />
+                <button
+                  onClick={() => setScreen("signup")}
+                  className="cursor-pointer w-full sm:w-auto px-12 py-6 bg-white border-2 border-slate-100 hover:border-yellow-400 text-slate-600 hover:text-slate-900 font-black text-sm rounded-[2rem] transition-all duration-300 uppercase tracking-[0.2em] shadow-sm hover:shadow-xl"
+                >
+                  Get Professional Access
+                </button>
+              </div>
+            </section>
+
+            {/* Metrics Section */}
+            <section className="w-full max-w-7xl mx-auto px-6 py-16">
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-10 bg-white/90 backdrop-blur-2xl border border-white rounded-[4rem] p-16 text-center shadow-[0_30px_60px_-15px_rgba(0,0,0,0.1)]">
+                <div className="space-y-4">
+                  <span className="text-6xl md:text-7xl font-black text-slate-950 block tracking-tighter">120<span className="text-sky-500">K+</span></span>
+                  <p className="text-slate-400 text-[10px] uppercase font-black tracking-[0.3em] bg-slate-50 py-2 rounded-full w-fit mx-auto px-6">Data Points Indexed</p>
                 </div>
-              );
-            })}
-          </section>
+                <div className="space-y-4 border-y md:border-y-0 md:border-x border-slate-100 py-10 md:py-0">
+                  <span className="text-6xl md:text-7xl font-black text-slate-950 block tracking-tighter">10<span className="text-yellow-500">X</span></span>
+                  <p className="text-slate-400 text-[10px] uppercase font-black tracking-[0.3em] bg-slate-50 py-2 rounded-full w-fit mx-auto px-6">Efficiency Multiplier</p>
+                </div>
+                <div className="space-y-4">
+                  <span className="text-6xl md:text-7xl font-black text-slate-950 block tracking-tighter">85<span className="text-blue-500">%</span></span>
+                  <p className="text-slate-400 text-[10px] uppercase font-black tracking-[0.3em] bg-slate-50 py-2 rounded-full w-fit mx-auto px-6">Target Accuracy</p>
+                </div>
+              </div>
+            </section>
+          </main>
 
-          <footer className="border-t border-purple-950/20 bg-[#0a0a0f] py-8 px-6 text-center text-xs text-slate-650 max-w-7xl mx-auto w-full">
-            <p>&copy; {new Date().getFullYear()} BidEngine AI. All Rights Reserved.</p>
+          <footer className="py-20 bg-white border-t border-slate-100 text-center">
+            <div className="flex justify-center gap-12 mb-10">
+              <div className="w-3 h-3 rounded-full bg-sky-500 animate-pulse" />
+              <div className="w-3 h-3 rounded-full bg-yellow-400 animate-pulse" style={{ animationDelay: '0.5s' }} />
+              <div className="w-3 h-3 rounded-full bg-blue-500 animate-pulse" style={{ animationDelay: '1s' }} />
+            </div>
+            <p className="text-[12px] font-black uppercase tracking-[0.4em] text-slate-400">
+              &copy; {new Date().getFullYear()} BidEngine AI Forge Operations
+            </p>
           </footer>
         </div>
       )}
 
       {screen === "login" && (
-        <div className="min-h-screen flex flex-col items-center justify-center p-6 bg-[#0a0a0f]" id="root-login-screen">
-          <div className="w-full max-w-md bg-[#1a1a2e] p-8 rounded-2xl border border-purple-955/20 shadow-2xl space-y-6">
-            <div className="text-center space-y-1">
-              <button onClick={() => setScreen("landing")} className="inline-flex items-center gap-2 text-purple-400 font-extrabold text-2xl cursor-pointer">
-                <Cpu className="h-6 w-6" />
-                <span>BidEngine.AI</span>
+        <div className="min-h-screen flex flex-col items-center justify-center p-6 bg-slate-100 relative selection:bg-sky-500/30" id="root-login-screen">
+          <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,rgba(14,165,233,0.1)_0%,transparent_70%)]" />
+          <div className="w-full max-w-md bg-white p-12 rounded-[3.5rem] border border-white shadow-[0_40px_80px_-20px_rgba(0,0,0,0.1)] space-y-10 relative z-10">
+            <div className="text-center space-y-6">
+              <button onClick={() => setScreen("landing")} className="inline-flex flex-col items-center gap-4">
+                <div className="p-4 bg-sky-500 rounded-[2rem] shadow-2xl rotate-3">
+                  <Cpu className="h-10 w-10 text-white" />
+                </div>
+                <span className="font-black text-4xl tracking-tighter text-slate-950">BidEngine<span className="text-sky-500">.AI</span></span>
               </button>
-              <h2 className="text-lg font-bold text-white pt-2">Access Bidding Workspace</h2>
-              <p className="text-xs text-slate-400">Sign in to start mapping complex RFPs instantly.</p>
+              <h2 className="text-xl font-black text-slate-400 uppercase tracking-[0.2em] pt-4 border-t border-slate-50">Personnel Authentication</h2>
             </div>
 
             {authMessage && (
-              <div className={`p-3 rounded-lg text-xs border ${authMessage.type === "success" ? "bg-emerald-950/40 text-emerald-300 border-emerald-900" : "bg-rose-950/40 text-rose-300 border-rose-900"}`}>
+              <div className={`p-5 rounded-2xl text-xs font-black uppercase tracking-widest border animate-in slide-in-from-top-2 duration-300 shadow-sm ${authMessage.type === "success" ? "bg-emerald-50 text-emerald-600 border-emerald-100" : "bg-rose-50 text-rose-600 border-rose-100"}`}>
                 {authMessage.text}
               </div>
             )}
 
-            <form onSubmit={handleLogin} className="space-y-4">
-              <div className="space-y-1">
-                <label className="text-xs font-bold uppercase tracking-wider text-slate-405 font-mono">Email Address</label>
+            <form onSubmit={handleLogin} className="space-y-6">
+              <div className="space-y-3">
+                <label className="text-[10px] font-black uppercase tracking-[0.3em] text-slate-400 px-2">Access Identity</label>
                 <input
                   type="email"
                   value={userEmail}
                   onChange={(e) => setUserEmail(e.target.value)}
-                  className="w-full bg-[#0a0a0f] text-slate-200 p-3 rounded-lg border border-purple-950/40 text-sm"
+                  className="w-full bg-slate-50 text-slate-900 p-5 rounded-[1.5rem] border border-slate-100 focus:outline-none focus:ring-4 focus:ring-sky-500/10 transition-all font-bold placeholder:text-slate-300"
+                  placeholder="name@company.com"
                 />
               </div>
-              <div className="space-y-1">
-                <label className="text-xs font-bold uppercase tracking-wider text-slate-405 font-mono">Password</label>
+              <div className="space-y-3">
+                <label className="text-[10px] font-black uppercase tracking-[0.3em] text-slate-400 px-2">Encryption Key</label>
                 <input
                   type="password"
                   value={loginPassword}
                   onChange={(e) => setLoginPassword(e.target.value)}
-                  className="w-full bg-[#0a0a0f] text-slate-200 p-3 rounded-lg border border-purple-950/40 text-sm"
+                  className="w-full bg-slate-50 text-slate-900 p-5 rounded-[1.5rem] border border-slate-100 focus:outline-none focus:ring-4 focus:ring-sky-500/10 transition-all font-bold placeholder:text-slate-300"
+                  placeholder="••••••••"
                 />
               </div>
-              <button type="submit" disabled={isAuthenticating} className="w-full py-3 bg-purple-600 hover:bg-purple-500 disabled:bg-slate-800 text-white font-semibold rounded-lg text-sm transition cursor-pointer">
-                {isAuthenticating ? "Signing In..." : "Enter Workspace"}
+              <button
+                type="submit"
+                disabled={isAuthenticating}
+                className="w-full py-6 bg-sky-600 hover:bg-sky-500 disabled:bg-slate-200 text-white font-black rounded-[1.5rem] text-xs uppercase tracking-[0.3em] transition-all duration-500 shadow-2xl hover:shadow-[0_20px_40px_-5px_rgba(14,165,233,0.4)] cursor-pointer active:scale-[0.98]"
+              >
+                {isAuthenticating ? "SYNCHRONIZING..." : "INITIATE SESSION"}
               </button>
             </form>
 
-            <div className="text-center text-xs text-slate-500 pt-2 border-t border-purple-950/20">
-              <span>Don't have a team seat? </span>
-              <button onClick={() => setScreen("signup")} className="text-purple-405 hover:underline cursor-pointer font-medium">Register here</button>
+            <div className="text-center text-[10px] font-black uppercase tracking-[0.3em] text-slate-400 pt-8 border-t border-slate-50 flex flex-col gap-4">
+              <span>New Operational Personnel?</span>
+              <button onClick={() => setScreen("signup")} className="text-sky-600 hover:text-sky-500 transition cursor-pointer bg-sky-50 py-3 rounded-xl border border-sky-100">Establish Identity</button>
             </div>
           </div>
         </div>
       )}
 
       {screen === "signup" && (
-        <div className="min-h-screen flex flex-col items-center justify-center p-6 bg-[#0a0a0f]" id="root-signup-screen">
-          <div className="w-full max-w-md bg-[#1a1a2e] p-8 rounded-2xl border border-purple-955/20 shadow-2xl space-y-6">
-            <div className="text-center space-y-1">
-              <button onClick={() => setScreen("landing")} className="inline-flex items-center gap-2 text-purple-400 font-extrabold text-2xl cursor-pointer">
-                <Cpu className="h-6 w-6" />
-                <span>BidEngine.AI</span>
+        <div className="min-h-screen flex flex-col items-center justify-center p-6 bg-slate-100 relative selection:bg-sky-500/30" id="root-signup-screen">
+          <div className="absolute inset-x-0 top-0 h-2 bg-gradient-to-r from-sky-500 via-yellow-400 to-blue-500" />
+          <div className="w-full max-w-md bg-white p-12 rounded-[3.5rem] border border-white shadow-[0_40px_80px_-20px_rgba(0,0,0,0.1)] space-y-8 relative z-10">
+            <div className="text-center space-y-6">
+              <button onClick={() => setScreen("landing")} className="inline-flex flex-col items-center gap-4">
+                <div className="p-4 bg-sky-500 rounded-[2rem] shadow-2xl">
+                  <Cpu className="h-8 w-8 text-white" />
+                </div>
+                <span className="font-black text-4xl tracking-tighter text-slate-900">BidEngine<span className="text-sky-500">.AI</span></span>
               </button>
-              <h2 className="text-lg font-bold text-white pt-2">Create Workspace Seat</h2>
-              <p className="text-xs text-slate-400">Complete setup details for your organization.</p>
+              <h2 className="text-xl font-black text-slate-400 uppercase tracking-[0.3em] pt-4 border-t border-slate-50">Identity Registration</h2>
             </div>
 
             {authMessage && (
-              <div className={`p-3 rounded-lg text-xs border ${authMessage.type === "success" ? "bg-emerald-950/40 text-emerald-300 border-emerald-900" : "bg-rose-950/40 text-rose-300 border-rose-900"}`}>
+              <div className={`p-5 rounded-2xl text-xs font-black uppercase tracking-widest border animate-in slide-in-from-top-2 duration-300 shadow-sm ${authMessage.type === "success" ? "bg-emerald-50 text-emerald-600 border-emerald-100" : "bg-rose-50 text-rose-600 border-rose-100"}`}>
                 {authMessage.text}
               </div>
             )}
 
-            <form onSubmit={handleSignup} className="space-y-4">
-              <div className="space-y-1">
-                <label className="text-xs font-bold uppercase tracking-wider text-slate-405 font-mono">Full Name</label>
+            <form onSubmit={handleSignup} className="space-y-5">
+              <div className="space-y-2 px-1">
+                <label className="text-[10px] font-black uppercase tracking-[0.3em] text-slate-400">Full Name</label>
                 <input
                   type="text"
                   value={userName}
                   onChange={(e) => setUserName(e.target.value)}
-                  className="w-full bg-[#0a0a0f] text-slate-200 p-3 rounded-lg border border-purple-950/40 text-sm"
+                  className="w-full bg-slate-50 text-slate-900 p-5 rounded-[1.5rem] border border-slate-100 focus:outline-none focus:ring-4 focus:ring-sky-500/10 transition-all font-bold placeholder:text-slate-300"
                 />
               </div>
-              <div className="space-y-1">
-                <label className="text-xs font-bold uppercase tracking-wider text-slate-405 font-mono">Work Email</label>
+              <div className="space-y-2 px-1">
+                <label className="text-[10px] font-black uppercase tracking-[0.3em] text-slate-400">Work Email</label>
                 <input
                   type="email"
                   value={userEmail}
                   onChange={(e) => setUserEmail(e.target.value)}
-                  className="w-full bg-[#0a0a0f] text-slate-200 p-3 rounded-lg border border-purple-950/40 text-sm"
+                  className="w-full bg-slate-50 text-slate-900 p-5 rounded-[1.5rem] border border-slate-100 focus:outline-none focus:ring-4 focus:ring-sky-500/10 transition-all font-bold placeholder:text-slate-300"
                 />
               </div>
-              <div className="space-y-1">
-                <label className="text-xs font-bold uppercase tracking-wider text-slate-405 font-mono">Secure Password</label>
+              <div className="space-y-2 px-1">
+                <label className="text-[10px] font-black uppercase tracking-[0.3em] text-slate-400">Secure Phrase</label>
                 <input
                   type="password"
                   value={signupPassword}
                   onChange={(e) => setSignupPassword(e.target.value)}
-                  className="w-full bg-[#0a0a0f] text-slate-200 p-3 rounded-lg border border-purple-950/40 text-sm"
+                  className="w-full bg-slate-50 text-slate-900 p-5 rounded-[1.5rem] border border-slate-100 focus:outline-none focus:ring-4 focus:ring-sky-500/10 transition-all font-bold placeholder:text-slate-300"
                 />
               </div>
-              <button type="submit" disabled={isAuthenticating} className="w-full py-3 bg-purple-600 hover:bg-purple-500 disabled:bg-slate-800 text-white font-semibold rounded-lg text-sm transition cursor-pointer">
-                {isAuthenticating ? "Creating Workspace..." : "Create Workspace"}
+              <button
+                type="submit"
+                disabled={isAuthenticating}
+                className="w-full py-6 bg-yellow-400 hover:bg-yellow-300 disabled:bg-slate-200 text-yellow-950 font-black rounded-[1.5rem] text-xs uppercase tracking-[0.3em] transition-all duration-500 shadow-2xl hover:shadow-[0_20px_40px_-5px_rgba(234,179,8,0.3)] cursor-pointer mt-4"
+              >
+                {isAuthenticating ? "CONFIGURING..." : "ESTABLISH IDENTITY"}
               </button>
             </form>
 
-            <div className="text-center text-xs text-slate-500 pt-2 border-t border-purple-950/20">
-              <span>Already registered? </span>
-              <button onClick={() => setScreen("login")} className="text-purple-455 hover:underline cursor-pointer font-medium">Log In instead</button>
+            <div className="text-center text-[10px] font-black uppercase tracking-[0.3em] text-slate-400 pt-8 border-t border-slate-50 flex flex-col gap-4">
+              <span>Legacy Personnel Logged?</span>
+              <button onClick={() => setScreen("login")} className="text-sky-600 hover:text-sky-500 transition cursor-pointer bg-sky-50 py-3 rounded-xl border border-sky-100 uppercase">Return to Forge</button>
             </div>
           </div>
         </div>
       )}
 
       {screen === "dashboard" && (
-        <div className="min-h-screen bg-[#0a0a0f] flex flex-col overflow-y-auto" id="root-dashboard-hub">
+        <div className="min-h-screen bg-slate-50 flex flex-col overflow-y-auto relative" id="root-dashboard-hub">
+          {/* Global Light Accents */}
+          <div className="fixed top-0 left-0 w-full h-full pointer-events-none -z-10">
+            <div className="absolute top-0 right-0 w-[50%] h-[50%] bg-sky-400/5 rounded-full blur-[120px]" />
+            <div className="absolute bottom-0 left-0 w-[50%] h-[50%] bg-yellow-400/5 rounded-full blur-[120px]" />
+          </div>
+
           <Navbar
             activeTab={activeTab}
             setActiveTab={setActiveTab}
@@ -817,45 +863,51 @@ export default function App() {
             onSignOut={handleSignOut}
           />
 
-          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 flex-grow w-full space-y-6">
+          <div className="max-w-7xl mx-auto px-6 sm:px-8 lg:px-10 py-12 flex-grow w-full space-y-12 animate-in fade-in duration-1000">
             {alert && (
-              <div className="p-4 rounded-xl flex items-start gap-3 text-sm bg-purple-950/30 text-purple-350 border border-purple-900 shadow-md">
-                <ShieldAlert className="h-5 w-5 shrink-0 mt-0.5 text-purple-400" />
-                <div>{alert.text}</div>
+              <div className={`p-6 rounded-[2rem] flex items-start gap-6 text-sm font-black uppercase tracking-widest border shadow-2xl animate-in slide-in-from-top-6 duration-700 ${alert.type === 'success' ? 'bg-emerald-50 text-emerald-600 border-emerald-100' : 'bg-rose-50 text-rose-600 border-rose-100'}`}>
+                <div className={`p-2 rounded-xl ${alert.type === 'success' ? 'bg-emerald-100' : 'bg-rose-100'}`}>
+                  <ShieldAlert className="h-6 w-6 shrink-0" />
+                </div>
+                <div className="pt-2">{alert.text}</div>
               </div>
             )}
 
-            <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 border-b border-purple-955/20 pb-4">
-              <div>
-                <span className="text-[10px] font-mono font-bold text-purple-400 uppercase tracking-widest block mb-1">
-                  AI Bidding Workspace Console
-                </span>
-                <h1 className="text-2xl md:text-3xl font-extrabold text-white tracking-tight flex items-center gap-2">
-                  <Cpu className="text-purple-500 h-7 w-7" />
-                  RFP Response Workshop
+            <div className="flex flex-col md:flex-row md:items-end md:justify-between gap-10 pb-12 border-b border-slate-100">
+              <div className="space-y-4">
+                <div className="flex items-center gap-3 mb-2">
+                  <div className="w-3 h-3 rounded-full bg-sky-500 animate-ping" />
+                  <span className="text-[12px] font-black text-sky-600 uppercase tracking-[0.4em]">
+                    Neural Command Center
+                  </span>
+                </div>
+                <h1 className="text-5xl md:text-7xl font-black text-slate-900 tracking-tighter flex items-center gap-6">
+                  PROPOSAL <span className="text-sky-500 drop-shadow-sm">FORGE</span>
                 </h1>
-                <p className="text-slate-400 text-xs mt-1">
-                  Manage proposal lifecycles, parse text specifications, check compliance, edit answers and track progress.
+                <p className="text-slate-400 text-sm font-bold uppercase tracking-[0.2em] pt-4 flex items-center gap-4">
+                  <div className="h-px w-10 bg-slate-200" />
+                  Mission Parameters <span className="text-slate-200">|</span> RFP Sequence Optimization
                 </p>
               </div>
-              
-              <div className="px-3.5 py-2 bg-[#1a1a2e] border border-purple-955/20 rounded-lg flex items-center gap-2">
-                <span className={`w-2.5 h-2.5 rounded-full ${currentWorkspace?.id ? "bg-emerald-500" : "bg-amber-400"} animate-pulse shrink-0`} />
-                <div className="text-xs font-mono">
-                  <span className="text-slate-500">Supabase workspace: </span>
-                  <span className={currentWorkspace?.id ? "text-emerald-400 font-bold" : "text-amber-300 font-bold"}>
-                    {isLoadingWorkspace
-                      ? "LOADING"
-                      : currentWorkspace?.title
-                        ? compactText(currentWorkspace.title, 34)
-                        : "NEW RFP"}
-                  </span>
+
+              <div className="p-8 bg-white border border-slate-100 rounded-[2.5rem] shadow-2xl flex items-center gap-6 group hover:border-sky-300 transition-all">
+                <div className="bg-sky-50 p-4 rounded-3xl group-hover:rotate-6 transition-transform">
+                  <Cpu className="h-8 w-8 text-sky-500" />
+                </div>
+                <div className="flex flex-col">
+                  <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Active Neural Context</span>
+                  <div className="flex items-center gap-3">
+                    <span className={`w-3 h-3 rounded-full ${currentWorkspace?.id ? "bg-emerald-500" : "bg-amber-400"} animate-pulse`} />
+                    <span className={`text-xl font-black tracking-tight ${currentWorkspace?.id ? "text-slate-900" : "text-amber-600"}`}>
+                      {isLoadingWorkspace ? "SYNCHRONIZING..." : currentWorkspace?.title ? compactText(currentWorkspace.title, 20) : "VIRTUAL_TEMP_01"}
+                    </span>
+                  </div>
                 </div>
               </div>
             </div>
 
-            {/* Tab content */}
-            <div>
+            {/* Dashboard Main Grid Area */}
+            <div className="relative min-h-[700px] animate-in fade-in slide-in-from-bottom-4 duration-1000 delay-300">
               {activeTab === "upload" && (
                 <FileUpload
                   onTextParsed={executeRfpAnalysis}
@@ -897,7 +949,7 @@ export default function App() {
 
               {activeTab === "score" && (
                 <WinScoreDashboard
-                  activeBidTitle={currentWorkspace?.title || "RFP Bid Response Pipeline"}
+                  activeBidTitle={currentWorkspace?.title || "Project Alpha Sequence"}
                   ratingAnalysis={ratingAnalysis}
                   onPredictScore={executePredictScore}
                   isPredicting={isPredicting}

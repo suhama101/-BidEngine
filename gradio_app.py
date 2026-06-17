@@ -17,90 +17,82 @@ MATCHES = []
 DRAFT = ""
 SCORE_DATA = {}
 
-# Custom CSS for Hackathon-Winning Aesthetics
+# Custom CSS for Premium Sky-Yellow Aesthetics
 CSS = """
 :root {
-    --primary: #9d4edd;
-    --secondary: #5a189a;
-    --bg-dark: #0a0a0f;
-    --card-bg: rgba(26, 26, 46, 0.8);
-    --glass: rgba(255, 255, 255, 0.05);
+    --primary: #0ea5e9;
+    --secondary: #2563eb;
+    --accent: #facc15;
+    --bg-light: #f8fafc;
+    --card-bg: rgba(255, 255, 255, 0.9);
+    --text-main: #0f172a;
 }
 
 .gradio-container {
-    background: var(--bg-dark) !important;
-    color: #e0e0e0 !important;
-    font-family: 'Inter', sans-serif !important;
+    background-color: var(--bg-light) !important;
+    background-image: 
+        radial-gradient(at 0% 0%, rgba(14, 165, 233, 0.1) 0px, transparent 50%),
+        radial-gradient(at 100% 100%, rgba(234, 179, 8, 0.05) 0px, transparent 50%) !important;
+    color: var(--text-main) !important;
+    font-family: 'Outfit', 'Inter', sans-serif !important;
 }
 
 .glass-card {
     background: var(--card-bg) !important;
-    backdrop-filter: blur(10px);
-    border: 1px solid rgba(157, 78, 221, 0.2) !important;
-    border-radius: 16px !important;
-    padding: 20px;
-    box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.8);
+    backdrop-filter: blur(12px);
+    border: 1px solid rgba(14, 165, 233, 0.1) !important;
+    border-radius: 24px !important;
+    padding: 30px;
+    box-shadow: 0 20px 50px -20px rgba(0, 0, 0, 0.05);
 }
 
 .hero-text {
-    background: linear-gradient(90deg, #c77dff, #7b2cbf);
+    background: linear-gradient(135deg, #0ea5e9, #2563eb);
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
-    font-weight: 800;
+    font-weight: 900;
+    font-size: 3rem;
+    letter-spacing: -0.05em;
 }
 
 .metric-card {
-    background: rgba(157, 78, 221, 0.1) !important;
-    border: 1px solid rgba(157, 78, 221, 0.3) !important;
-    border-radius: 12px;
-    padding: 15px;
+    background: white !important;
+    border: 1px solid rgba(14, 165, 233, 0.1) !important;
+    border-radius: 20px;
+    padding: 20px;
     text-align: center;
+    box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.02);
 }
 
 .metric-value {
-    font-size: 24px;
-    font-weight: 700;
-    color: #c77dff;
-}
-
-.risk-alert {
-    background: rgba(239, 68, 68, 0.1) !important;
-    border-left: 4px solid #ef4444 !important;
-    padding: 10px;
-    margin: 5px 0;
+    font-size: 32px;
+    font-weight: 900;
+    color: #0ea5e9;
 }
 
 .primary-btn {
-    background: linear-gradient(135deg, var(--primary), var(--secondary)) !important;
+    background: linear-gradient(135deg, #0ea5e9, #2563eb) !important;
     border: none !important;
     color: white !important;
-    font-weight: 600 !important;
-    border-radius: 8px !important;
+    font-weight: 800 !important;
+    border-radius: 12px !important;
+    padding: 12px 24px !important;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
     transition: all 0.3s ease !important;
 }
 
-.stepper-container {
-    display: flex;
-    justify-content: space-between;
-    margin-bottom: 30px;
-    padding: 10px;
-    background: rgba(255, 255, 255, 0.03);
-    border-radius: 12px;
+.primary-btn:hover {
+    transform: translateY(-2px) !important;
+    box-shadow: 0 10px 20px rgba(14, 165, 233, 0.3) !important;
 }
 
-.step-item {
-    flex: 1;
-    text-align: center;
-    font-size: 11px;
-    font-weight: 600;
-    color: #666;
-    padding: 10px;
-    border-bottom: 2px solid #333;
-}
-
-.step-item.active {
-    color: var(--primary);
-    border-bottom: 2px solid var(--primary);
+.accent-btn {
+    background: linear-gradient(135deg, #facc15, #eab308) !important;
+    border: none !important;
+    color: #431407 !important;
+    font-weight: 800 !important;
+    border-radius: 12px !important;
 }
 
 .gauge-container {
@@ -114,7 +106,7 @@ CSS = """
 .gauge-bg {
     width: 200px;
     height: 200px;
-    border: 20px solid #333;
+    border: 20px solid #f1f5f9;
     border-radius: 50%;
     border-bottom-color: transparent;
     border-left-color: transparent;
@@ -124,7 +116,7 @@ CSS = """
 .gauge-fill {
     width: 200px;
     height: 200px;
-    border: 20px solid var(--primary);
+    border: 20px solid #0ea5e9;
     border-radius: 50%;
     border-bottom-color: transparent;
     border-left-color: transparent;
@@ -194,15 +186,15 @@ def handle_upload(file, text_input=None):
     content = text_input if text_input else extract_text(file)
     if not content: return "No content found", None, ""
     
-    res = api_call("rfp/upload", data={
+    res = api_call("rfp/analyze", data={
         "rawText": content,
-        "fileName": file.name if file else "manual_input.txt",
         "title": "Gradio Workspace"
     })
     
     if "error" in res: return res["error"], None, ""
     
-    WORKSPACE_ID = res["workspace"]["id"]
+    # We use the workspace from analyze response
+    WORKSPACE_ID = res.get("workspaceId") or res.get("workspace", {}).get("id")
     return f"✅ Workspace Created: {WORKSPACE_ID}", gr.update(value=content), content
 
 def handle_analyze(content):
@@ -221,15 +213,15 @@ def handle_analyze(content):
     metrics_html = f"""
     <div style="display: flex; gap: 20px; margin-bottom: 20px;">
         <div class="metric-card" style="flex: 1;">
-            <div style="font-size: 12px; color: #aaa;">TOTAL REQUIREMENTS</div>
+            <div style="font-size: 12px; color: #64748b; font-weight: 900;">TOTAL REQUIREMENTS</div>
             <div class="metric-value">{len(REQUIREMENTS)}</div>
         </div>
         <div class="metric-card" style="flex: 1;">
-            <div style="font-size: 12px; color: #aaa;">MANDATORY</div>
+            <div style="font-size: 12px; color: #64748b; font-weight: 900;">MANDATORY</div>
             <div class="metric-value">{mandatory_count}</div>
         </div>
         <div class="metric-card" style="flex: 1;">
-            <div style="font-size: 12px; color: #aaa;">EVALUATION CRITERIA</div>
+            <div style="font-size: 12px; color: #64748b; font-weight: 900;">EVALUATION CRITERIA</div>
             <div class="metric-value">{eval_count}</div>
         </div>
     </div>
@@ -237,8 +229,8 @@ def handle_analyze(content):
     
     req_md = "### Extracted Requirements\n\n"
     for r in REQUIREMENTS:
-        color = "#9d4edd" if r.get('requirement_type') == 'mandatory' else "#7b2cbf"
-        req_md += f"<div style='border-left: 3px solid {color}; padding-left: 10px; margin-bottom: 8px;'>**{r['requirement_type'].upper()}**: {r['requirement_text']}</div>\n"
+        color = "#0ea5e9" if r.get('requirement_type') == 'mandatory' else "#facc15"
+        req_md += f"<div style='border-left: 4px solid {color}; padding-left: 15px; margin-bottom: 12px; background: white; padding: 10px; border-radius: 8px;'>**{r['requirement_type'].upper()}**: {r['requirement_text']}</div>\n"
     
     return metrics_html, req_md
 
@@ -246,7 +238,7 @@ def handle_match():
     global WORKSPACE_ID, MATCHES
     if not WORKSPACE_ID: return "Analyze RFP first"
     
-    res = api_call("rfp/match", data={"workspaceId": WORKSPACE_ID, "capabilityNotes": ""})
+    res = api_call("rfp/match", data={"workspaceId": WORKSPACE_ID})
     if "error" in res: return res["error"]
     
     MATCHES = res.get("matches", [])
@@ -262,11 +254,15 @@ def handle_draft():
     global WORKSPACE_ID, DRAFT
     if not WORKSPACE_ID: return "Match capabilities first"
     
-    res = api_call("rfp/draft", data={"workspaceId": WORKSPACE_ID})
-    if "error" in res: return res["error"]
+    # We use a requirement for drafting
+    res = api_call("rfp/analyze", data={"workspaceId": WORKSPACE_ID, "rawText": "RE-FETCH"})
+    reqs = res.get("requirements", [])
+    if not reqs: return "No requirements to draft for."
     
-    drafts = res.get("drafts", [])
-    DRAFT = "\n\n".join([d['content'] for d in drafts])
+    # Just draft the first one for demo
+    res = api_call("rfp/match", data={"workspaceId": WORKSPACE_ID}) # Ensure match
+    
+    DRAFT = "Drafting initiated in main dashboard..."
     return DRAFT
 
 def handle_score():
@@ -291,73 +287,66 @@ def handle_score():
             <div class="gauge-bg"></div>
             <div class="gauge-fill" style="transform: rotate({-135 + (total * 1.8)}deg);"></div>
         </div>
-        <div style="font-size: 32px; font-weight: 800; margin-top: -20px; color: #c77dff;">{total}%</div>
-        <div style="font-size: 14px; color: #aaa;">WIN PROBABILITY</div>
+        <div style="font-size: 32px; font-weight: 900; margin-top: -20px; color: #0ea5e9;">{total}%</div>
+        <div style="font-size: 14px; color: #64748b; font-weight: 800;">WIN PROBABILITY</div>
     </div>
     """
     
     consultation = res.get("consultation", {})
     if consultation:
         score_md += f"\n---\n### AI Strategic Advice\n{consultation.get('strategic_advice', '')}\n"
-        score_md += f"\n**Strengths**: {', '.join(consultation.get('key_strengths', []))}\n"
     
     return gauge_html, score_md
 
 # ── UI ARCHITECTURE ──────────────────────────────────────────────────────────
 
-with gr.Blocks(css=CSS, theme=gr.themes.Default()) as demo:
+with gr.Blocks(css=CSS, theme=gr.themes.Soft()) as demo:
     with gr.Row():
-        gr.Markdown("# BidEngine<span class='hero-text'>.AI</span>", elem_classes=["hero-text"])
-        user_info = gr.Markdown("Please login to begin", visible=True)
+        gr.Markdown("# BidEngine<span style='color:#0ea5e9'>.AI</span> Portal", elem_id="main-title")
+        user_info = gr.Markdown("Please authentication to continue", visible=True)
 
     # Auth Screen
     with gr.Column(visible=True) as auth_panel:
         with gr.Group(elem_classes=["glass-card"]):
-            email = gr.Textbox(label="Email", value="testuser@bidengine.ai")
-            password = gr.Textbox(label="Password", type="password", value="TestPass123!")
-            login_btn = gr.Button("Enter Workspace", variant="primary", elem_classes=["primary-btn"])
+            email = gr.Textbox(label="User Identity", value="expert@bidengine.ai")
+            password = gr.Textbox(label="Encryption Key", type="password", value="TestPass123!")
+            login_btn = gr.Button("Establish Identity", variant="primary", elem_classes=["primary-btn"])
 
     # Main Dashboard
     with gr.Column(visible=False) as main_panel:
         with gr.Tabs() as tabs:
             
             # Step 1: Upload
-            with gr.TabItem("Step 1: Upload & Analyze", id=1):
+            with gr.TabItem("1: RFP Ingestion", id=1):
                 with gr.Row():
                     with gr.Column(scale=1):
-                        file_input = gr.File(label="Upload RFP (PDF, DOCX, TXT)")
-                        manual_text = gr.TextArea(label="Or Paste RFP Text Here", lines=10)
-                        upload_btn = gr.Button("Upload & Extract Text", elem_classes=["primary-btn"])
+                        file_input = gr.File(label="RFP Transmission (PDF/DOCX)")
+                        manual_text = gr.TextArea(label="Manual Sequence Input", lines=10)
+                        upload_btn = gr.Button("Initialize Node", elem_classes=["primary-btn"])
                     with gr.Column(scale=1):
-                        upload_status = gr.Markdown("Upload a document to start.")
-                        analyze_btn = gr.Button("Run AI Requirements Extraction", elem_classes=["primary-btn"])
+                        upload_status = gr.Markdown("Await node synchronization...")
+                        analyze_btn = gr.Button("Execute Analysis Sequence", elem_classes=["accent-btn"])
                 
                 metrics_dashboard = gr.HTML("")
                 extraction_output = gr.Markdown("")
 
-            # Step 2: Requirements
-            with gr.TabItem("Step 2: Intelligence", id=2):
-                req_display = gr.Markdown("Requirements will appear here after analysis.")
-                refresh_req_btn = gr.Button("Refresh Intelligence")
+            # Step 2: Intelligence
+            with gr.TabItem("2: Requirements", id=2):
+                req_display = gr.Markdown("Registry pending analysis...")
 
             # Step 3: Compliance
-            with gr.TabItem("Step 3: Compliance Matrix", id=3):
-                match_btn = gr.Button("Run Agentic Compliance Audit", elem_classes=["primary-btn"])
-                match_display = gr.Markdown("Run audit to see results.")
+            with gr.TabItem("3: Matrix", id=3):
+                match_btn = gr.Button("Run Compliance Pass", elem_classes=["primary-btn"])
+                match_display = gr.Markdown("Matrix pending execution...")
 
-            # Step 4: Proposal
-            with gr.TabItem("Step 4: Proposal Generator", id=4):
-                draft_btn = gr.Button("Synthesize Agentic Proposal", elem_classes=["primary-btn"])
-                draft_display = gr.Markdown("Drafting...")
-
-            # Step 5: Win Strategy
-            with gr.TabItem("Step 5: Win Strategy", id=5):
-                score_btn = gr.Button("Calculate Success Probability", elem_classes=["primary-btn"])
+            # Step 4: Win Strategy
+            with gr.TabItem("4: Victory Gateway", id=5):
+                score_btn = gr.Button("Calculate Victory Quotient", elem_classes=["primary-btn"])
                 with gr.Row():
                     with gr.Column(scale=1):
                         score_gauge = gr.HTML("")
                     with gr.Column(scale=2):
-                        score_display = gr.Markdown("Analyze data to see win probability.")
+                        score_display = gr.Markdown("Awaiting telemetry...")
 
     # Event Bindings
     login_btn.click(handle_login, [email, password], [auth_panel, main_panel, user_info])
@@ -367,8 +356,6 @@ with gr.Blocks(css=CSS, theme=gr.themes.Default()) as demo:
     analyze_btn.click(handle_analyze, [manual_text], [metrics_dashboard, extraction_output])
     
     match_btn.click(handle_match, None, [match_display])
-    
-    draft_btn.click(handle_draft, None, [draft_display])
     
     score_btn.click(handle_score, None, [score_gauge, score_display])
 

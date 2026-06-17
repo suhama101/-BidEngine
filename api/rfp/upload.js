@@ -1,6 +1,6 @@
 import { extractTextFromFile } from "../../bid-engine/lib/pdfParser.js";
 import { requireAuthenticatedUser } from "../_lib/requestAuth.js";
-import { getSupabaseAdminOrNull } from "../_lib/supabase.js";
+import { getSupabaseAdminOrNull, sanitizeForDb } from "../_lib/supabase.js";
 
 export const config = {
   api: {
@@ -261,7 +261,13 @@ export default async function handler(req, res) {
 
       const { data: workspace, error: workspaceError } = await workspaceDb
         .from("rfp_workspaces")
-        .insert({ user_id: user.id, title: bidTitle, status: "uploaded", raw_text: rawText, file_name: fileName })
+        .insert({
+          user_id: user.id,
+          title: sanitizeForDb(bidTitle),
+          status: "uploaded",
+          raw_text: sanitizeForDb(rawText),
+          file_name: sanitizeForDb(fileName)
+        })
         .select("id,user_id,title,status,raw_text,file_name,created_at,updated_at")
         .single();
 
@@ -312,7 +318,13 @@ export default async function handler(req, res) {
 
     const { data: workspace, error: workspaceError } = await workspaceDb
       .from("rfp_workspaces")
-      .insert({ user_id: user.id, title: bidTitle, status: "uploaded", raw_text: rawText, file_name: fileName })
+      .insert({
+        user_id: user.id,
+        title: sanitizeForDb(bidTitle),
+        status: "uploaded",
+        raw_text: sanitizeForDb(rawText),
+        file_name: sanitizeForDb(fileName)
+      })
       .select("id,user_id,title,status,raw_text,file_name,created_at,updated_at")
       .single();
 

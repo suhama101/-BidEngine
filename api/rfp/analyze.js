@@ -1,7 +1,7 @@
 import { mapCriteriaToTaxonomy } from "../../bid-engine/lib/datasetAnalysis.js";
 import { EVALUATION_CRITERIA_TAXONOMY } from "../../bid-engine/lib/sampleData.js";
 import { requireAuthenticatedUser, requireWorkspaceOwner } from "../_lib/requestAuth.js";
-import { getSupabaseAdminOrNull } from "../_lib/supabase.js";
+import { getSupabaseAdminOrNull, sanitizeForDb } from "../_lib/supabase.js";
 
 const isUuid = (value) =>
   /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(String(value || ""));
@@ -18,7 +18,39 @@ const unique = (values) => [...new Set(values.filter(Boolean))];
 const splitLines = (text) =>
   String(text || "").split(/\r?\n/).map((l) => l.trim()).filter(Boolean);
 
-// ── Groq AI call via native fetch ─────────────────────────────────────────────
+// ── LLM call (OpenAI primary, Groq fallback) ──────────────────────────────────
+const callOpenAI = async (prompt, systemPrompt) => {
+  const apiKey = process.env.OPENAI_API_KEY;
+  if (!apiKey) throw new Error("OPENAI_API_KEY not configured");
+
+  const response = await fetch("https://api.openai.com/v1/chat/completions", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${apiKey}`,
+    },
+    body: JSON.stringify({
+      model: "gpt-4o-mini",
+      temperature: 0,
+      max_tokens: 3000,
+      response_format: { type: "json_object" },
+      messages: [
+        { role: "system", content: systemPrompt },
+        { role: "user", content: prompt },
+      ],
+    }),
+  });
+
+  if (!response.ok) {
+    const errText = await response.text().catch(() => "");
+    throw new Error(`OpenAI API error ${response.status}: ${errText.slice(0, 200)}`);
+  }
+
+  const data = await response.json();
+  const text = data.choices?.[0]?.message?.content || "{}";
+  try { return JSON.parse(text); } catch { return {}; }
+};
+
 const callGroq = async (prompt, systemPrompt) => {
   const apiKey = process.env.GROQ_API_KEY;
   if (!apiKey) throw new Error("GROQ_API_KEY not configured");
@@ -49,6 +81,16 @@ const callGroq = async (prompt, systemPrompt) => {
   const data = await response.json();
   const text = data.choices?.[0]?.message?.content || "{}";
   try { return JSON.parse(text); } catch { return {}; }
+};
+
+const callLLM = async (prompt, systemPrompt) => {
+  // Try OpenAI first (reliable), fall back to Groq
+  if (process.env.OPENAI_API_KEY) {
+    try { return await callOpenAI(prompt, systemPrompt); } catch (e) {
+      console.warn("OpenAI fallback to Groq:", e.message);
+    }
+  }
+  return callGroq(prompt, systemPrompt);
 };
 
 // ── Groq extraction with improved per-item prompt ─────────────────────────────
@@ -83,7 +125,7 @@ JSON Schema:
 RFP TEXT SEGMENT:
 ${rfpText}`;
 
-  return callGroq(extractionPrompt, systemPrompt);
+  return callLLM(extractionPrompt, systemPrompt);
 };
 
 // ── Heuristic fallback when Groq is unavailable ───────────────────────────────
@@ -131,14 +173,14 @@ const buildRequirementRows = (extractedData, taxonomyMappings) => {
 
   const add = (text, type, value) => {
     if (!text || typeof text !== "string") return;
-    const clean = text.trim().slice(0, 200);
+    const clean = sanitizeForDb(text.trim().slice(0, 200));
     if (clean.length < 10) return;
     if (isHeading(clean)) return;
     rows.push({
       requirement_text: clean,
       requirement_type: type,
       compliance_status: "partial",
-      extracted_value: value,
+      extracted_value: sanitizeForDb(value),
     });
   };
 
@@ -240,7 +282,7 @@ export default async function handler(req, res) {
       const bidTitle = givenBidTitle || `RFP Analysis - ${new Date().toLocaleDateString()}`;
       const { data: newWorkspace, error: workspaceError } = await workspaceDb
         .from("rfp_workspaces")
-        .insert({ user_id: user.id, title: bidTitle, status: "analyzing", raw_text: rawText })
+        .insert({ user_id: user.id, title: sanitizeForDb(bidTitle), status: "analyzing", raw_text: sanitizeForDb(rawText) })
         .select().single();
       if (workspaceError) throw new Error(`Failed to create workspace: ${workspaceError.message}`);
       workspaceId = newWorkspace.id;

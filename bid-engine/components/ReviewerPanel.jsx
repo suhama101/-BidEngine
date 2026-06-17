@@ -1,24 +1,27 @@
 "use client";
 
 import React, { useState } from "react";
-import { ClipboardCheck, FileWarning, WandSparkles, Copy, RefreshCw, ShieldAlert } from "lucide-react";
+import { ClipboardCheck, FileWarning, WandSparkles, Copy, RefreshCw, ShieldAlert, Zap } from "lucide-react";
 
 const renderItems = (items = [], emptyText = "No issues detected.") => {
   if (!items || items.length === 0) {
-    return <p className="text-xs text-slate-500">{emptyText}</p>;
+    return <p className="text-xs text-slate-400 italic">{emptyText}</p>;
   }
 
   return (
-    <div className="space-y-2">
+    <div className="space-y-3">
       {items.map((item, index) => (
-        <div key={index} className="rounded-lg border border-purple-950/20 bg-[#0a0a0f]/70 p-3 text-xs text-slate-300">
+        <div key={index} className="rounded-2xl border border-sky-100 bg-white p-4 text-xs text-slate-600 shadow-sm hover:shadow-md transition-shadow">
           {typeof item === "string" ? (
-            <p>{item}</p>
+            <p className="font-medium leading-relaxed">{item}</p>
           ) : (
             <>
-              <p className="font-semibold text-white">{item.section_title || item.requirement_id || item.issue || `Issue ${index + 1}`}</p>
-              {item.issue && <p className="mt-1 text-slate-400">{item.issue}</p>}
-              {item.severity && <p className="mt-1 text-[10px] uppercase tracking-wider text-purple-300 font-mono">Severity: {item.severity}</p>}
+              <div className="flex items-center gap-2 mb-1">
+                <div className={`w-1.5 h-4 rounded-full ${item.severity === 'high' ? 'bg-rose-500' : 'bg-sky-400'}`} />
+                <p className="font-black text-slate-800 uppercase tracking-tight">{item.section_title || item.requirement_id || item.issue || `Issue ${index + 1}`}</p>
+              </div>
+              {item.issue && <p className="mt-1 text-slate-500 leading-relaxed">{item.issue}</p>}
+              {item.severity && <span className="mt-2 inline-block text-[9px] font-black uppercase tracking-widest px-2 py-0.5 bg-slate-100 text-slate-500 rounded-full border border-slate-200">Severity: {item.severity}</span>}
             </>
           )}
         </div>
@@ -43,119 +46,138 @@ export default function ReviewerPanel({
   };
 
   return (
-    <div className="grid grid-cols-1 lg:grid-cols-3 gap-6" id="reviewer-panel">
-      <div className="lg:col-span-1 bg-[#1a1a2e] p-6 rounded-xl border border-purple-950/40 shadow-xl space-y-4 h-fit">
-        <div>
-          <h3 className="text-lg font-bold text-white flex items-center gap-2">
-            <ClipboardCheck className="text-purple-400 h-5 w-5" />
-            Reviewer Agent
-          </h3>
-          <p className="text-xs text-slate-400 mt-1">
-            Inspect the draft for weak claims, compliance gaps, and formatting risks before final submission.
-          </p>
+    <div className="grid grid-cols-1 lg:grid-cols-3 gap-8" id="reviewer-panel">
+      {/* Strategy Card */}
+      <div className="lg:col-span-1 bg-white/90 backdrop-blur-md p-8 rounded-[3rem] border border-sky-100 shadow-2xl space-y-6 h-fit relative overflow-hidden">
+        <div className="absolute top-0 left-0 w-1.5 h-full bg-yellow-400" />
+        <div className="flex items-center gap-5 mb-8">
+          <div className="bg-sky-500 p-4 rounded-3xl shadow-xl ring-8 ring-sky-50">
+            <ClipboardCheck className="text-white h-7 w-7" />
+          </div>
+          <div>
+            <h3 className="text-2xl font-black text-slate-900 tracking-tight flex items-center gap-2">
+              Reviewer Agent
+            </h3>
+            <div className="flex items-center gap-2 mt-1">
+              <div className="w-2 h-2 rounded-full bg-yellow-400 animate-pulse" />
+              <span className="text-[10px] font-black text-slate-400 tracking-[0.2em] uppercase">Policy Audit v4.0</span>
+            </div>
+          </div>
         </div>
 
         <button
           onClick={onRunReview}
           disabled={isReviewing}
-          className="w-full flex items-center justify-center gap-2 py-3 px-4 bg-purple-600 hover:bg-purple-500 disabled:bg-slate-800 text-white rounded-lg font-semibold text-sm transition cursor-pointer"
+          className={`w-full flex items-center justify-center gap-3 py-5 px-6 rounded-[1.5rem] font-black text-sm transition-all shadow-lg active:scale-[0.98] cursor-pointer ${isReviewing
+              ? "bg-slate-100 text-slate-400 cursor-not-allowed"
+              : "bg-sky-600 hover:bg-sky-500 text-white shadow-sky-200"
+            }`}
         >
           {isReviewing ? (
             <>
-              <RefreshCw className="h-4 w-4 animate-spin" />
-              <span>Reviewing Draft...</span>
+              <RefreshCw className="h-5 w-5 animate-spin" />
+              <span className="uppercase tracking-widest">Auditing Pipeline...</span>
             </>
           ) : (
             <>
-              <WandSparkles className="h-4 w-4" />
-              <span>Run Reviewer Agent</span>
+              <Zap className="h-5 w-5 fill-current" />
+              <span className="uppercase tracking-widest">Initiate Quality Pass</span>
             </>
           )}
         </button>
 
-        <div className="rounded-xl border border-purple-950/20 bg-[#0a0a0f]/80 p-4">
-          <span className="text-[10px] font-mono uppercase tracking-wider text-purple-300 block">Final Recommendation</span>
-          <div className={`mt-2 inline-flex px-3 py-1 rounded-full text-xs font-bold border ${
-            reviewResult?.final_recommendation === "GO"
-              ? "bg-emerald-950/40 text-emerald-300 border-emerald-900"
-              : "bg-rose-950/40 text-rose-300 border-rose-900"
-          }`}>
-            {reviewResult?.final_recommendation || "Pending"}
+        <div className="space-y-4 pt-4 border-t border-slate-100">
+          <label className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-400 px-1">Final Recommendation</label>
+          <div className="p-6 bg-slate-50/50 rounded-3xl border border-slate-100 relative overflow-hidden group">
+            <div className={`text-center py-2 px-6 rounded-2xl text-[10px] font-black tracking-[0.3em] uppercase mb-4 border ${reviewResult?.final_recommendation === "GO"
+                ? "bg-emerald-50 text-emerald-600 border-emerald-100"
+                : "bg-rose-50 text-rose-600 border-rose-100"
+              }`}>
+              {reviewResult?.final_recommendation || "System Pending"}
+            </div>
+            <p className="text-xs text-slate-500 leading-relaxed font-medium">
+              {reviewResult?.rationale || "The reviewer agent will provide a strategic go/no-go recommendation based on compliance fit and evidence strength."}
+            </p>
           </div>
-          <p className="text-xs text-slate-400 mt-3 leading-relaxed">
-            {reviewResult?.rationale || "Run the reviewer to get a final quality pass and remediation summary."}
-          </p>
         </div>
       </div>
 
-      <div className="lg:col-span-2 bg-[#1a1a2e] p-6 rounded-xl border border-purple-950/40 shadow-xl space-y-5">
-        <div className="flex items-center justify-between pb-3 border-b border-purple-950/20">
-          <div>
-            <h3 className="text-lg font-bold text-white flex items-center gap-2">
-              <FileWarning className="text-purple-400 h-5 w-5" />
-              Reviewer Feedback and Final Proposal
-            </h3>
-            <p className="text-xs text-slate-400 mt-1">
-              Shows weak sections, unsupported claims, and a cleaned-up proposal draft.
-            </p>
+      {/* Main Feedback Card */}
+      <div className="lg:col-span-2 bg-white/90 backdrop-blur-md p-8 rounded-[3rem] border border-sky-100 shadow-2xl space-y-8 relative overflow-hidden">
+        <div className="absolute top-0 right-0 w-64 h-64 bg-sky-50 rounded-full blur-3xl -z-10" />
+
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-6 pb-6 border-b border-slate-100">
+          <div className="flex items-center gap-5">
+            <div className="p-4 bg-yellow-400 rounded-3xl shadow-xl ring-8 ring-yellow-50">
+              <FileWarning className="text-yellow-900 h-7 w-7" />
+            </div>
+            <div>
+              <h3 className="text-2xl font-black text-slate-900 tracking-tight">Audit Feedback Registry</h3>
+              <p className="text-slate-400 text-[10px] font-black mt-1 uppercase tracking-[0.15em]">Neural Cleanup & Risk Mitigation</p>
+            </div>
           </div>
 
           {finalProposal && (
             <button
               onClick={handleCopy}
-              className="flex items-center gap-1.5 px-3 py-1.5 bg-[#0a0a0f] hover:bg-purple-950/20 rounded border border-purple-950/20 text-purple-300 text-xs font-semibold transition cursor-pointer"
+              className="flex items-center gap-3 px-6 py-3 bg-white hover:bg-sky-50 rounded-2xl border-2 border-sky-100 text-sky-600 text-[10px] font-black uppercase tracking-widest transition-all shadow-sm active:scale-95 cursor-pointer"
             >
               <Copy className="h-4 w-4" />
-              <span>{copied ? "Copied" : "Copy Final"}</span>
+              <span>{copied ? "Copied to Buffer" : "Copy Improved Version"}</span>
             </button>
           )}
         </div>
 
         {!reviewResult ? (
-          <div className="rounded-xl border border-dashed border-purple-950/30 bg-[#0a0a0f]/60 p-10 text-center">
-            <ShieldAlert className="h-10 w-10 text-slate-600 mx-auto mb-3" />
-            <p className="text-slate-400 text-sm">No reviewer output yet.</p>
-            <p className="text-slate-500 text-xs mt-1">Generate the proposal draft first, then run the reviewer agent.</p>
+          <div className="flex flex-col items-center justify-center py-24 text-center space-y-4">
+            <div className="p-8 bg-slate-50 rounded-full animate-bounce-slow">
+              <ShieldAlert className="h-16 w-16 text-slate-200" />
+            </div>
+            <div>
+              <p className="text-slate-400 font-black uppercase tracking-widest text-sm">Feedback Matrix Offline</p>
+              <p className="text-slate-300 text-[10px] uppercase font-bold mt-2">Generate proposal draft to enable audit protocols</p>
+            </div>
           </div>
         ) : (
-          <div className="space-y-5">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div className="rounded-xl border border-purple-950/20 bg-[#0a0a0f]/70 p-4">
-                <h4 className="text-sm font-bold text-white mb-2">Weak Sections</h4>
-                {renderItems(reviewResult.weak_sections, "No weak sections detected.")}
+          <div className="space-y-8">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div className="space-y-3">
+                <h4 className="text-[10px] font-black text-rose-500 uppercase tracking-widest px-1">Weak Sections</h4>
+                {renderItems(reviewResult.weak_sections, "Protocol verified: No weak sections.")}
               </div>
-              <div className="rounded-xl border border-purple-950/20 bg-[#0a0a0f]/70 p-4">
-                <h4 className="text-sm font-bold text-white mb-2">Unsupported Claims</h4>
-                {renderItems(reviewResult.unsupported_claims, "No unsupported claims detected.")}
+              <div className="space-y-3">
+                <h4 className="text-[10px] font-black text-amber-500 uppercase tracking-widest px-1">Unsupported Claims</h4>
+                {renderItems(reviewResult.unsupported_claims, "Protocol verified: No unsupported claims.")}
               </div>
-              <div className="rounded-xl border border-purple-950/20 bg-[#0a0a0f]/70 p-4">
-                <h4 className="text-sm font-bold text-white mb-2">Missing Compliance</h4>
-                {renderItems(reviewResult.missing_compliance_points, "No missing compliance gaps detected.")}
+              <div className="space-y-3">
+                <h4 className="text-[10px] font-black text-emerald-500 uppercase tracking-widest px-1">Compliance Gaps</h4>
+                {renderItems(reviewResult.missing_compliance_points, "Protocol verified: No compliance gaps.")}
               </div>
-              <div className="rounded-xl border border-purple-950/20 bg-[#0a0a0f]/70 p-4">
-                <h4 className="text-sm font-bold text-white mb-2">Vague Language</h4>
-                {renderItems(reviewResult.vague_language, "No vague language detected.")}
+              <div className="space-y-3">
+                <h4 className="text-[10px] font-black text-sky-500 uppercase tracking-widest px-1">Language Optimization</h4>
+                {renderItems(reviewResult.vague_language, "Language is precise and professional.")}
               </div>
             </div>
 
-            <div className="rounded-xl border border-purple-950/20 bg-[#0a0a0f]/70 p-4">
-              <h4 className="text-sm font-bold text-white mb-2">Formatting Issues</h4>
-              {renderItems(reviewResult.formatting_issues, "No formatting issues detected.")}
+            <div className="space-y-3">
+              <h4 className="text-[10px] font-black text-slate-400 uppercase tracking-widest px-1">Strategic Suggestions</h4>
+              {renderItems(reviewResult.suggestions, "Initial pass optimal.")}
             </div>
 
-            <div className="rounded-xl border border-purple-950/20 bg-[#0a0a0f]/70 p-4">
-              <h4 className="text-sm font-bold text-white mb-2">Reviewer Suggestions</h4>
-              {renderItems(reviewResult.suggestions, "No suggestions available.")}
-            </div>
-
-            <div className="rounded-xl border border-emerald-900/30 bg-emerald-950/10 p-4">
-              <h4 className="text-sm font-bold text-emerald-300 mb-2">Final Improved Proposal</h4>
-              <textarea
-                readOnly
-                value={finalProposal}
-                className="w-full h-[320px] bg-[#0a0a0f] text-slate-200 p-4 rounded-xl border border-emerald-900/30 focus:outline-none font-mono text-xs leading-relaxed"
-                placeholder="The reviewer will produce a final improved proposal version here."
-              />
+            <div className="relative group pt-4">
+              <div className="absolute -inset-1 bg-gradient-to-r from-sky-400 to-yellow-400 rounded-[2rem] blur opacity-10 group-hover:opacity-20 transition duration-1000"></div>
+              <div className="relative bg-white rounded-[2rem] border border-sky-100 overflow-hidden shadow-2xl">
+                <div className="px-8 py-4 bg-sky-50/50 border-b border-sky-100 flex items-center justify-between">
+                  <span className="text-[10px] font-black uppercase tracking-widest text-sky-600">Improved Master Draft</span>
+                  <Zap className="h-4 w-4 text-yellow-400 animate-pulse" />
+                </div>
+                <textarea
+                  readOnly
+                  value={finalProposal}
+                  className="w-full h-[400px] bg-white text-slate-800 p-8 focus:outline-none font-medium text-sm leading-relaxed resize-none custom-scrollbar"
+                  placeholder="The agent will output the final, remediation-ready proposal draft here..."
+                />
+              </div>
             </div>
           </div>
         )}

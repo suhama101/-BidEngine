@@ -2,7 +2,7 @@ import { matchRequirementToCapabilities } from "../../bid-engine/lib/datasetAnal
 import { retrieveAndMatch, buildCapabilityIndex } from "../../bid-engine/lib/semanticRetriever.js";
 import { CAPABILITY_LIBRARY } from "../../bid-engine/lib/sampleData.js";
 import { requireAuthenticatedUser, requireWorkspaceOwner } from "../_lib/requestAuth.js";
-import { getSupabaseAdminOrNull } from "../_lib/supabase.js";
+import { getSupabaseAdminOrNull, sanitizeForDb } from "../_lib/supabase.js";
 
 const isUuid = (value) =>
   /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(String(value || ""));
@@ -152,10 +152,10 @@ export default async function handler(req, res) {
           .from("rfp_requirements")
           .update({
             compliance_status: match.compliance_status,
-            extracted_value: match.evidence,
-            matched_evidence: match.evidence,
+            extracted_value: sanitizeForDb(match.evidence),
+            matched_evidence: sanitizeForDb(match.evidence),
             match_confidence: match.confidence_score,
-            match_reasoning: match.reasoning,
+            match_reasoning: sanitizeForDb(match.reasoning),
           })
           .eq("id", match.requirement_id)
           .eq("workspace_id", workspaceId)

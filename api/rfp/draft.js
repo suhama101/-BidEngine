@@ -1,7 +1,7 @@
 import { CAPABILITY_LIBRARY } from "../../bid-engine/lib/sampleData.js";
 import { matchRequirementToCapabilities, extractEntitiesFromText } from "../../bid-engine/lib/datasetAnalysis.js";
 import { requireAuthenticatedUser, requireWorkspaceOwner } from "../_lib/requestAuth.js";
-import { getSupabaseAdminOrNull } from "../_lib/supabase.js";
+import { getSupabaseAdminOrNull, sanitizeForDb } from "../_lib/supabase.js";
 
 const isUuid = (value) =>
   /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(String(value || ""));
@@ -153,8 +153,8 @@ export default async function handler(req, res) {
 
       const insertRows = draftsList.map((item) => ({
         workspace_id: workspaceId,
-        section_title: item.section_title || "Proposal Response Section",
-        content: item.content || "Response placeholder under generation.",
+        section_title: sanitizeForDb(item.section_title || "Proposal Response Section"),
+        content: sanitizeForDb(item.content || "Response placeholder under generation."),
         status: "ai_generated",
       }));
 
@@ -214,7 +214,7 @@ export default async function handler(req, res) {
       const { data, error } = await workspaceDb
         .from("proposal_drafts")
         .update({
-          content: String(content || ""),
+          content: sanitizeForDb(String(content || "")),
           status: nextStatus,
         })
         .eq("id", draftId)

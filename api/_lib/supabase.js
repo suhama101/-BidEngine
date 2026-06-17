@@ -1,5 +1,19 @@
 import { createClient } from "@supabase/supabase-js";
 
+/**
+ * Sanitize text for PostgreSQL (prevents "unsupported Unicode escape sequence")
+ * This is critical when RFP text contains literal backslashes (\u, \x) 
+ * which PostgreSQL might try to interpret as escapes.
+ */
+export const sanitizeForDb = (text) => {
+  if (!text) return "";
+  return String(text)
+    .replace(/\x00/g, "") // Remove null bytes (forbidden in Postgres text/jsonb)
+    .replace(/\\/g, "\\\\"); // Escape ALL backslashes to ensure they are treated as literals
+};
+
+
+
 const getEnv = (name) => {
   const value = process.env[name];
   if (!value) throw new Error(`${name} is required`);

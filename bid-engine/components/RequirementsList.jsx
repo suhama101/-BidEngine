@@ -1,119 +1,124 @@
 "use client";
 
 import React, { useState } from "react";
-import { FileSpreadsheet, ChevronRight, ListFilter, ShieldAlert } from "lucide-react";
+import { ListChecks, Search, Tag, AlertCircle, ArrowRight, Layers, FileSearch, Sparkles } from "lucide-react";
 
 export default function RequirementsList({
   requirements = [],
   onSelectRequirement,
 }) {
-  const [filterCategory, setFilterCategory] = useState("All");
+  const [filter, setFilter] = useState("");
+  const [categoryFilter, setCategoryFilter] = useState("All");
 
   const categories = ["All", ...new Set(requirements.map((r) => r.category).filter(Boolean))];
 
-  const filteredRequirements =
-    filterCategory === "All"
-      ? requirements
-      : requirements.filter((r) => r.category === filterCategory);
-
-  const getSeverityBadge = (severity) => {
-    switch (severity?.toLowerCase()) {
-      case "high":
-      case "mandatory":
-        return "bg-rose-50 text-rose-600 border-rose-100";
-      case "medium":
-        return "bg-amber-50 text-amber-600 border-amber-100";
-      default:
-        return "bg-sky-50 text-sky-600 border-sky-100";
-    }
-  };
-
-  const getCategoryBadge = (category) => {
-    return "bg-white text-slate-500 border-slate-200";
-  };
+  const filtered = requirements.filter((r) => {
+    const matchesSearch =
+      (r.title || "").toLowerCase().includes(filter.toLowerCase()) ||
+      (r.description || "").toLowerCase().includes(filter.toLowerCase());
+    const matchesCategory = categoryFilter === "All" || r.category === categoryFilter;
+    return matchesSearch && matchesCategory;
+  });
 
   return (
-    <div className="bg-white/90 backdrop-blur-md p-8 rounded-[2.5rem] border border-sky-100 shadow-2xl space-y-8" id="bid-requirements-list">
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between pb-6 border-b border-slate-100 gap-6">
-        <div>
-          <h2 className="text-3xl font-black text-slate-900 tracking-tight flex items-center gap-4">
-            <div className="p-3 bg-sky-500 rounded-2xl shadow-xl">
-              <FileSpreadsheet className="text-white h-7 w-7" />
+    <div className="bg-white/95 backdrop-blur-2xl p-10 rounded-[4rem] border border-sky-100 shadow-[0_40px_100px_-30px_rgba(14,165,233,0.1)] space-y-10 animate-in fade-in duration-1000" id="bid-requirements-list">
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-8 pb-10 border-b border-slate-100">
+        <div className="flex items-center gap-6">
+          <div className="bg-sky-500 p-4 rounded-3xl shadow-xl ring-8 ring-sky-50 transition-transform hover:rotate-3">
+            <ListChecks className="text-white h-7 w-7" />
+          </div>
+          <div>
+            <h2 className="text-3xl font-black text-slate-900 tracking-tighter">Requirements Registry</h2>
+            <div className="flex items-center gap-3 mt-1.5">
+              <Sparkles className="h-4 w-4 text-yellow-400 animate-pulse" />
+              <p className="text-slate-400 text-[10px] font-black uppercase tracking-[0.2em]">Decomposed Logical Units</p>
             </div>
-            Requirement Repository
-          </h2>
-          <p className="text-slate-400 text-[10px] font-bold mt-2 uppercase tracking-widest px-1">
-            Atomic Clauses <span className="text-slate-300 px-2">|</span> Validated by Agentic Swarm
-          </p>
+          </div>
         </div>
 
-        {/* Categories Tab Selector */}
-        <div className="flex items-center gap-3 overflow-x-auto pb-1 sm:pb-0">
-          <ListFilter className="text-slate-400 h-5 w-5 shrink-0" />
-          <div className="flex bg-slate-50 p-1.5 rounded-2xl border border-slate-200 shrink-0 shadow-inner">
-            {categories.map((cat) => (
-              <button
-                key={cat}
-                onClick={() => setFilterCategory(cat)}
-                className={`px-6 py-2.5 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all duration-300 ${filterCategory === cat
-                    ? "bg-white text-sky-600 shadow-md border border-sky-100"
-                    : "text-slate-400 hover:text-slate-600"
-                  }`}
-              >
-                {cat}
-              </button>
-            ))}
+        <div className="flex flex-col sm:flex-row gap-4">
+          <div className="relative group">
+            <Search className="absolute left-5 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-300 group-focus-within:text-sky-500 transition-colors" />
+            <input
+              type="text"
+              placeholder="Search specifications..."
+              value={filter}
+              onChange={(e) => setFilter(e.target.value)}
+              className="pl-14 pr-6 py-4 bg-slate-50 border border-slate-100 rounded-2xl text-xs font-bold text-slate-900 focus:outline-none focus:ring-4 focus:ring-sky-500/10 transition-all w-full sm:w-64 placeholder:text-slate-300"
+            />
+          </div>
+
+          <div className="relative group">
+            <Tag className="absolute left-5 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-300 group-hover:text-yellow-500 transition-colors" />
+            <select
+              value={categoryFilter}
+              onChange={(e) => setCategoryFilter(e.target.value)}
+              className="pl-14 pr-10 py-4 bg-slate-50 border border-slate-100 rounded-2xl text-[10px] font-black uppercase tracking-widest text-slate-500 focus:outline-none focus:ring-4 focus:ring-yellow-500/10 appearance-none transition-all cursor-pointer"
+            >
+              {categories.map((cat) => (
+                <option key={cat} value={cat}>
+                  {cat}
+                </option>
+              ))}
+            </select>
           </div>
         </div>
       </div>
 
-      {filteredRequirements.length === 0 ? (
-        <div className="text-center py-24 bg-slate-50/50 rounded-[2rem] border-2 border-dashed border-slate-200">
-          <ShieldAlert className="h-16 w-16 text-slate-300 mx-auto mb-6 animate-pulse-slow" />
-          <p className="text-slate-500 font-extrabold uppercase tracking-widest text-sm">Requirement Catalog Empty</p>
-          <p className="text-slate-400 text-[10px] mt-2 font-bold uppercase tracking-widest">Initialize RFP analysis to populate repository</p>
-        </div>
-      ) : (
-        <div className="grid grid-cols-1 gap-6">
-          {filteredRequirements.map((req, index) => (
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+        {filtered.length === 0 ? (
+          <div className="col-span-full py-32 flex flex-col items-center justify-center text-center space-y-6">
+            <div className="p-10 bg-slate-50 rounded-full animate-pulse-soft">
+              <FileSearch className="h-16 w-16 text-slate-200" />
+            </div>
+            <div className="space-y-2">
+              <p className="text-slate-400 font-black uppercase tracking-widest text-sm">No sequence matches found</p>
+              <p className="text-slate-300 text-[10px] uppercase font-bold">Try adjusting your filters or re-extracting RFP text</p>
+            </div>
+          </div>
+        ) : (
+          filtered.map((req, index) => (
             <div
-              key={req.id || index}
+              key={req.id}
               onClick={() => onSelectRequirement && onSelectRequirement(req)}
-              className="bg-white border border-slate-100 hover:border-sky-300 rounded-[2rem] p-8 hover:bg-sky-50/30 transition-all duration-500 cursor-pointer group relative overflow-hidden shadow-sm hover:shadow-xl"
+              className="group bg-white rounded-[2.5rem] p-8 border border-slate-100 hover:border-sky-300 transition-all duration-500 shadow-sm hover:shadow-[0_30px_60px_-15px_rgba(14,165,233,0.15)] cursor-pointer relative overflow-hidden flex flex-col h-full active:scale-[0.97]"
             >
-              <div className="absolute top-0 right-0 w-48 h-48 bg-gradient-to-br from-sky-50 to-transparent pointer-events-none -z-10" />
+              <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-transparent via-sky-500 to-transparent scale-x-0 group-hover:scale-x-100 transition-transform duration-700" />
 
-              <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-6 relative z-10">
-                <div className="space-y-4">
-                  <div className="flex items-center flex-wrap gap-2">
-                    <span className="text-[10px] font-black tracking-widest text-sky-600 px-4 py-1.5 bg-sky-50 rounded-full border border-sky-100 uppercase">
-                      {req.displayId || req.display_id || req.id || `REQ-${index + 1}`}
-                    </span>
-                    <span className={`text-[10px] font-black uppercase tracking-widest px-4 py-1.5 rounded-full border shadow-sm ${getSeverityBadge(req.severity)}`}>
-                      {req.severity || "Standard"}
-                    </span>
-                    <span className={`text-[10px] font-black uppercase tracking-widest px-4 py-1.5 rounded-full border shadow-sm ${getCategoryBadge(req.category)}`}>
-                      {req.category || "General"}
-                    </span>
-                  </div>
-                  <h3 className="text-xl font-bold text-slate-900 group-hover:text-sky-600 transition-colors duration-300 leading-tight">
-                    {req.title || `Requirement ${index + 1}`}
-                  </h3>
-                </div>
-
-                <button className="hidden sm:inline-flex items-center gap-3 text-[10px] font-black uppercase tracking-widest text-sky-600 group-hover:bg-sky-500 group-hover:text-white transition-all duration-300 bg-sky-50 px-6 py-3 rounded-2xl border border-sky-100 group-hover:shadow-lg">
-                  <span>Synthesize</span>
-                  <ChevronRight className="h-4 w-4 transform group-hover:translate-x-1 transition-transform" />
-                </button>
+              <div className="flex items-center justify-between mb-6">
+                <span className="text-[10px] font-black text-sky-600 bg-sky-50 px-4 py-1.5 rounded-full border border-sky-100 uppercase tracking-widest">
+                  {req.category || "General"}
+                </span>
+                <span className={`text-[9px] font-black uppercase tracking-widest px-3 py-1 rounded-full border ${req.severity === 'Critical'
+                    ? "bg-rose-50 text-rose-500 border-rose-100"
+                    : "bg-emerald-50 text-emerald-500 border-emerald-100"
+                  }`}>
+                  {req.severity || "Standard"}
+                </span>
               </div>
 
-              <p className="text-slate-500 text-[14px] mt-6 leading-relaxed border-t border-slate-50 pt-6 font-medium italic group-hover:text-slate-700 transition-colors">
-                "{req.description || req.requirement_text}"
+              <h4 className="text-xl font-black text-slate-900 leading-tight mb-4 group-hover:text-sky-600 transition-colors">
+                {req.title || `Requirement ${index + 1}`}
+              </h4>
+
+              <p className="text-xs text-slate-500 leading-relaxed font-medium line-clamp-3 mb-8 flex-grow">
+                {req.description || "The exact requirement statement extracted from the source document."}
               </p>
+
+              <div className="flex items-center justify-between pt-6 border-t border-slate-50 mt-auto">
+                <div className="flex items-center gap-2">
+                  <div className="w-2 h-2 rounded-full bg-yellow-400 group-hover:scale-125 transition-transform" />
+                  <span className="text-[9px] font-black text-slate-300 uppercase tracking-widest">{req.displayId || `R-${index + 1}`}</span>
+                </div>
+                <div className="flex items-center gap-2 text-[10px] font-black text-sky-500 opacity-0 group-hover:opacity-100 transition-all -translate-x-4 group-hover:translate-x-0">
+                  <span className="uppercase tracking-widest">Draft Response</span>
+                  <ArrowRight className="h-4 w-4" />
+                </div>
+              </div>
             </div>
-          ))}
-        </div>
-      )}
+          ))
+        )}
+      </div>
     </div>
   );
 }

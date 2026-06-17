@@ -13,8 +13,40 @@ export const getGroqClient = () => {
   });
 };
 
+// ── OpenAI fallback via native fetch ─────────────────────────────────────────
+const callOpenAI = async (prompt, systemPrompt, options = {}) => {
+  const apiKey = process.env.OPENAI_API_KEY;
+  if (!apiKey) return null;
+
+  const response = await fetch("https://api.openai.com/v1/chat/completions", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${apiKey}`,
+    },
+    body: JSON.stringify({
+      model: options.model || "gpt-4o-mini",
+      temperature: options.temperature ?? 0,
+      max_tokens: options.max_tokens || 4000,
+      ...(options.json !== false ? { response_format: { type: "json_object" } } : {}),
+      messages: [
+        { role: "system", content: systemPrompt },
+        { role: "user", content: prompt },
+      ],
+    }),
+  });
+
+  if (!response.ok) {
+    const errText = await response.text().catch(() => "");
+    throw new Error(`OpenAI API error ${response.status}: ${errText.slice(0, 200)}`);
+  }
+
+  const data = await response.json();
+  return data.choices?.[0]?.message?.content || "";
+};
+
 /**
- * Expert analysis utility utilizing llama-3.3-70b-versatile.
+ * Expert analysis utility — tries Groq first, falls back to OpenAI.
  * Consistently returns structured JSON records.
  * 
  * @param {string} prompt - User request containing target document text or parameters.
@@ -22,6 +54,7 @@ export const getGroqClient = () => {
  * @returns {Promise<object>} - Parsed JSON object.
  */
 export async function analyzeWithGroq(prompt, systemPrompt) {
+  // ── Try Groq first ──
   const groq = getGroqClient();
   try {
     const response = await groq.chat.completions.create({
@@ -32,44 +65,41 @@ export async function analyzeWithGroq(prompt, systemPrompt) {
       model: "llama-3.1-8b-instant",
       temperature: 0,
       max_tokens: 4000,
-      // Request JSON response formatting
       response_format: { type: "json_object" }
     });
 
     const outputText = response.choices[0]?.message?.content || "{}";
-
-    // Safely parse JSON structure
     return JSON.parse(outputText);
-  } catch (error) {
-    console.error("Error in analyzeWithGroq:", error);
-
-    // Attempt dynamic extraction of JSON blocks if something went weird inside the raw text response
-    try {
-      const completionText = error.response?.choices?.[0]?.message?.content || "";
-      if (completionText) {
-        const jsonRegex = /\{[\s\S]*\}/;
-        const match = completionText.match(jsonRegex);
-        if (match) {
-          return JSON.parse(match[0]);
-        }
-      }
-    } catch (innerError) {
-      console.error("Fallback json extraction parse failed:", innerError);
-    }
-
-    // Return standard error container ensuring valid JSON is ALWAYS returned
-    return {
-      error: true,
-      message: error.message || "Failed to parse API outcome with Groq",
-      fallback: true
-    };
+  } catch (groqError) {
+    console.warn("Groq failed, trying OpenAI fallback:", groqError.message?.slice(0, 100));
   }
+
+  // ── OpenAI fallback ──
+  try {
+    const outputText = await callOpenAI(prompt, systemPrompt, { json: true });
+    if (outputText) {
+      try { return JSON.parse(outputText); } catch {
+        const match = outputText.match(/\{[\s\S]*\}/);
+        if (match) return JSON.parse(match[0]);
+      }
+    }
+  } catch (openaiError) {
+    console.error("OpenAI fallback also failed:", openaiError.message?.slice(0, 100));
+  }
+
+  // Return standard error container ensuring valid JSON is ALWAYS returned
+  return {
+    error: true,
+    message: "Both Groq and OpenAI failed",
+    fallback: true
+  };
 }
 
 /**
- * Utility to run standard chat completions on llama-3.3-70b-versatile
+ * Utility to run standard chat completions — tries Groq first, falls back to OpenAI.
  */
 export const runBidCompletion = async (systemPrompt, userPrompt, temperature = 0.2) => {
+  // ── Try Groq first ──
   const groq = getGroqClient();
   try {
     const response = await groq.chat.completions.create({
@@ -81,8 +111,17 @@ export const runBidCompletion = async (systemPrompt, userPrompt, temperature = 0
       temperature,
     });
     return response.choices[0]?.message?.content || "";
-  } catch (error) {
-    console.error("Groq Completion Error:", error);
-    throw new Error(`Failed to consult Groq AI API: ${error.message}`);
+  } catch (groqError) {
+    console.warn("Groq completion failed, trying OpenAI:", groqError.message?.slice(0, 100));
   }
+
+  // ── OpenAI fallback ──
+  try {
+    const result = await callOpenAI(userPrompt, systemPrompt, { temperature, json: false });
+    if (result) return result;
+  } catch (openaiError) {
+    console.error("OpenAI completion fallback also failed:", openaiError.message?.slice(0, 100));
+  }
+
+  throw new Error("Failed to generate completion: both Groq and OpenAI are unavailable.");
 };

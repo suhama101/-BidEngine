@@ -629,17 +629,17 @@ export default function App() {
         <div className="min-h-screen flex flex-col justify-between relative overflow-hidden" id="root-landing-portal">
           {/* Background Elements */}
           <div className="absolute top-0 left-1/2 -translate-x-1/2 w-full max-w-7xl h-full pointer-events-none -z-10">
-            <div className="absolute top-[-10%] left-[-10%] w-[60%] h-[60%] bg-sky-400/20 rounded-full blur-[120px] animate-pulse" />
-            <div className="absolute bottom-[-10%] right-[-10%] w-[60%] h-[60%] bg-yellow-400/10 rounded-full blur-[120px] animate-pulse" style={{ animationDelay: '2s' }} />
-            <div className="absolute top-[20%] right-[10%] w-[40%] h-[40%] bg-blue-400/10 rounded-full blur-[100px] animate-pulse" style={{ animationDelay: '4s' }} />
+            <div className="absolute top-[-10%] left-[-10%] w-[80%] h-[80%] bg-sky-200/30 rounded-full blur-[140px] animate-pulse-soft" />
+            <div className="absolute bottom-[-10%] right-[-10%] w-[80%] h-[80%] bg-yellow-200/20 rounded-full blur-[140px] animate-pulse-soft" style={{ animationDelay: '2s' }} />
+            <div className="absolute top-[20%] right-[10%] w-[50%] h-[50%] bg-blue-100/30 rounded-full blur-[120px] animate-pulse-soft" style={{ animationDelay: '4s' }} />
           </div>
 
           <header className="border-b border-slate-100 bg-white/80 backdrop-blur-xl px-8 py-6 max-w-7xl mx-auto w-full flex items-center justify-between sticky top-0 z-50">
             <div className="flex items-center space-x-4">
-              <div className="bg-sky-500 p-2.5 rounded-2xl shadow-xl hover:rotate-6 transition-transform">
+              <div className="bg-sky-500 p-2.5 rounded-2xl shadow-xl hover:rotate-6 transition-transform animate-float">
                 <Cpu className="h-7 w-7 text-white" />
               </div>
-              <span className="font-black text-3xl tracking-tighter text-slate-900">
+              <span className="font-black text-3xl tracking-tighter text-slate-800">
                 BidEngine<span className="text-sky-500">.AI</span>
               </span>
             </div>
@@ -664,9 +664,9 @@ export default function App() {
                 <span>Next-Gen Agentic RAG Pipeline</span>
               </div>
 
-              <h1 className="text-6xl md:text-9xl font-black tracking-tighter text-slate-950 leading-[0.85]">
+              <h1 className="text-6xl md:text-9xl font-black tracking-tighter text-slate-900 leading-[0.85] animate-in fade-in zoom-in duration-1000">
                 WIN MORE <br />
-                <span className="bg-gradient-to-r from-sky-500 via-blue-600 to-indigo-600 bg-clip-text text-transparent drop-shadow-[0_10px_10px_rgba(14,165,233,0.1)]">
+                <span className="bg-gradient-to-r from-sky-500 via-blue-600 to-indigo-600 bg-clip-text text-transparent drop-shadow-[0_15px_15px_rgba(14,165,233,0.2)]">
                   BIDS FASTER.
                 </span>
               </h1>
@@ -695,17 +695,17 @@ export default function App() {
 
             {/* Metrics Section */}
             <section className="w-full max-w-7xl mx-auto px-6 py-16">
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-10 bg-white/90 backdrop-blur-2xl border border-white rounded-[4rem] p-16 text-center shadow-[0_30px_60px_-15px_rgba(0,0,0,0.1)]">
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-10 bg-white/95 backdrop-blur-3xl border border-sky-100 rounded-[4rem] p-16 text-center shadow-[0_40px_80px_-20px_rgba(0,0,0,0.08)] animate-in slide-in-from-bottom-10 duration-1000">
                 <div className="space-y-4">
-                  <span className="text-6xl md:text-7xl font-black text-slate-950 block tracking-tighter">120<span className="text-sky-500">K+</span></span>
+                  <span className="text-6xl md:text-7xl font-black text-slate-900 block tracking-tighter transition-all hover:scale-110">120<span className="text-sky-500">K+</span></span>
                   <p className="text-slate-400 text-[10px] uppercase font-black tracking-[0.3em] bg-slate-50 py-2 rounded-full w-fit mx-auto px-6">Data Points Indexed</p>
                 </div>
                 <div className="space-y-4 border-y md:border-y-0 md:border-x border-slate-100 py-10 md:py-0">
-                  <span className="text-6xl md:text-7xl font-black text-slate-950 block tracking-tighter">10<span className="text-yellow-500">X</span></span>
+                  <span className="text-6xl md:text-7xl font-black text-slate-900 block tracking-tighter transition-all hover:scale-110">10<span className="text-yellow-500">X</span></span>
                   <p className="text-slate-400 text-[10px] uppercase font-black tracking-[0.3em] bg-slate-50 py-2 rounded-full w-fit mx-auto px-6">Efficiency Multiplier</p>
                 </div>
                 <div className="space-y-4">
-                  <span className="text-6xl md:text-7xl font-black text-slate-950 block tracking-tighter">85<span className="text-blue-500">%</span></span>
+                  <span className="text-6xl md:text-7xl font-black text-slate-900 block tracking-tighter transition-all hover:scale-110">85<span className="text-blue-500"> %</span></span>
                   <p className="text-slate-400 text-[10px] uppercase font-black tracking-[0.3em] bg-slate-50 py-2 rounded-full w-fit mx-auto px-6">Target Accuracy</p>
                 </div>
               </div>

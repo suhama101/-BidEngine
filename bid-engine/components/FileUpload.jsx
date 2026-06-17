@@ -1,21 +1,21 @@
 "use client";
 
-import React, { useState } from "react";
-import { Upload, X, FileText, CheckCircle, AlertCircle, PlayCircle, ShieldCheck, Sparkles, Cpu } from "lucide-react";
+import React, { useState, useRef } from "react";
+import { Upload, FileText, ArrowRight, Zap, Sparkles, FileScan, ShieldCheck, RefreshCw, Cpu } from "lucide-react";
 
-export default function FileUpload({
-  onTextParsed,
-  isProcessing,
-  initialText = "",
-}) {
-  const [inputText, setInputText] = useState(initialText);
+export default function FileUpload({ onTextParsed, isProcessing, initialText = "" }) {
+  const [text, setText] = useState(initialText);
   const [dragActive, setDragActive] = useState(false);
+  const fileInputRef = useRef(null);
 
   const handleDrag = (e) => {
     e.preventDefault();
     e.stopPropagation();
-    if (e.type === "dragenter" || e.type === "dragover") setDragActive(true);
-    else if (e.type === "dragleave") setDragActive(false);
+    if (e.type === "dragenter" || e.type === "dragover") {
+      setDragActive(true);
+    } else if (e.type === "dragleave") {
+      setDragActive(false);
+    }
   };
 
   const handleDrop = (e) => {
@@ -23,39 +23,31 @@ export default function FileUpload({
     e.stopPropagation();
     setDragActive(false);
     if (e.dataTransfer.files && e.dataTransfer.files[0]) {
-      const file = e.dataTransfer.files[0];
-      const reader = new FileReader();
-      reader.onload = (event) => setInputText(event.target.result);
-      reader.readAsText(file);
-    }
-  };
-
-  const handleFileSelect = (e) => {
-    if (e.target.files && e.target.files[0]) {
-      const file = e.target.files[0];
-      const reader = new FileReader();
-      reader.onload = (event) => setInputText(event.target.result);
-      reader.readAsText(file);
+      // For now we just console log, since real parsing needs backend
+      console.log("File dropped:", e.dataTransfer.files[0].name);
     }
   };
 
   return (
-    <div className="grid grid-cols-1 lg:grid-cols-2 gap-8" id="file-upload-interface">
+    <div className="grid grid-cols-1 lg:grid-cols-2 gap-10 min-h-[600px] animate-in fade-in zoom-in-95 duration-1000" id="file-upload-portal">
       {/* Upload Zone */}
-      <div className="space-y-6">
-        <div className="bg-white/90 backdrop-blur-md p-10 rounded-[3rem] border-2 border-sky-100 shadow-2xl relative overflow-hidden h-full flex flex-col">
-          <div className="absolute top-0 right-0 w-64 h-64 bg-sky-50 rounded-full blur-3xl -z-10" />
-          <div className="flex items-center gap-5 transition-all mb-8">
-            <div className="bg-sky-500 p-4 rounded-3xl shadow-xl ring-8 ring-sky-50">
-              <Upload className="h-8 w-8 text-white" />
+      <div className="relative group">
+        <div className="absolute -inset-1 bg-gradient-to-r from-sky-500 to-yellow-500 rounded-[3.5rem] blur opacity-10 group-hover:opacity-20 transition duration-1000"></div>
+        <div className="bg-white/95 backdrop-blur-2xl p-12 rounded-[3.5rem] border-2 border-sky-100 shadow-[0_40px_100px_-30px_rgba(14,165,233,0.1)] relative overflow-hidden h-full flex flex-col justify-center text-center space-y-10 group-hover:border-sky-300 transition-all duration-500">
+          <div className="absolute top-0 right-0 w-64 h-64 bg-sky-50 rounded-full blur-3xl -z-10 -translate-y-12 translate-x-12" />
+
+          <div className="space-y-6">
+            <div className="inline-flex items-center gap-3 px-6 py-2 bg-sky-50 rounded-full border border-sky-100 text-[10px] font-black uppercase tracking-[0.3em] text-sky-600 mb-4 animate-pulse-soft">
+              <Upload className="h-4 w-4" />
+              <span>Secure Document Portal</span>
             </div>
-            <div>
-              <h2 className="text-3xl font-black text-slate-900 tracking-tight">RFP Ingestion</h2>
-              <div className="flex items-center gap-2 mt-1">
-                <div className="w-2 h-2 rounded-full bg-sky-500 animate-pulse" />
-                <span className="text-[10px] font-black text-slate-400 tracking-[0.2em] uppercase">Neural Parsing Enabled</span>
-              </div>
-            </div>
+            <h2 className="text-4xl font-black text-slate-900 tracking-tighter leading-tight">
+              DEPOSIT YOUR <br />
+              <span className="text-vibrant-sky italic">RFP SEQUENCE.</span>
+            </h2>
+            <p className="text-slate-400 text-sm font-medium max-w-sm mx-auto leading-relaxed">
+              Inject tender documents, technical specifications, or raw RFP text into our neural extraction hive.
+            </p>
           </div>
 
           <div
@@ -63,86 +55,83 @@ export default function FileUpload({
             onDragLeave={handleDrag}
             onDragOver={handleDrag}
             onDrop={handleDrop}
-            className={`flex-grow border-2 border-dashed rounded-[2.5rem] transition-all duration-500 flex flex-col items-center justify-center p-10 space-y-6 relative overflow-hidden group ${dragActive
-                ? "border-sky-500 bg-sky-50 scale-[1.01]"
-                : "border-slate-200 bg-slate-50/50 hover:border-sky-300 hover:bg-sky-50/30"
+            onClick={() => fileInputRef.current?.click()}
+            className={`relative border-4 border-dashed rounded-[3rem] p-16 transition-all duration-500 cursor-pointer flex flex-col items-center justify-center space-y-6 group/drop ${dragActive
+              ? "bg-sky-50 border-sky-400 scale-[1.02]"
+              : "bg-slate-50/50 border-slate-100 hover:border-sky-200 hover:bg-sky-50/30"
               }`}
           >
-            <div className="p-8 bg-white rounded-[2rem] shadow-xl group-hover:scale-110 transition-transform duration-500">
-              <FileText className={`h-16 w-16 transition-colors duration-500 ${dragActive ? "text-sky-500" : "text-slate-300 group-hover:text-sky-400"}`} />
+            <input ref={fileInputRef} type="file" className="hidden" />
+            <div className="p-8 bg-white rounded-[2.5rem] shadow-2xl group-hover/drop:scale-110 group-hover/drop:rotate-6 transition-all duration-500 ring-4 ring-sky-50">
+              <FileScan className={`h-12 w-12 ${dragActive ? 'text-sky-600' : 'text-sky-500'}`} />
             </div>
-            <div className="text-center space-y-2">
-              <p className="text-xl font-black text-slate-900 uppercase tracking-tight">Drop Specification Here</p>
-              <p className="text-slate-400 font-bold text-sm uppercase tracking-widest">or click to browse local storage</p>
+            <div className="space-y-2">
+              <p className="text-sm font-black text-slate-800 uppercase tracking-widest">Drop Master File</p>
+              <p className="text-[10px] font-bold text-slate-400 uppercase tracking-[0.2em]">DOCX, PDF, or Plaintext Transmissions</p>
             </div>
-
-            <input
-              type="file"
-              onChange={handleFileSelect}
-              className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
-              accept=".txt,.md,.pdf,.docx"
-            />
           </div>
 
-          <div className="mt-8 grid grid-cols-3 gap-4">
-            {[
-              { icon: CheckCircle, label: "Structural Validation", color: "text-emerald-500" },
-              { icon: ShieldCheck, label: "Security Audit", color: "text-sky-500" },
-              { icon: Sparkles, label: "Entity Extraction", color: "text-yellow-500" }
-            ].map((feature, idx) => (
-              <div key={idx} className="bg-white p-4 rounded-3xl border border-slate-100 flex flex-col items-center text-center space-y-2 shadow-sm">
-                <feature.icon className={`h-6 w-6 ${feature.color}`} />
-                <span className="text-[8px] font-black text-slate-500 uppercase tracking-[0.1em]">{feature.label}</span>
-              </div>
-            ))}
+          <div className="flex items-center justify-center gap-12 pt-4 opacity-40 group-hover:opacity-100 transition-opacity">
+            <ShieldCheck className="h-6 w-6 text-slate-300" />
+            <div className="w-px h-6 bg-slate-100" />
+            <RefreshCw className="h-6 w-6 text-slate-300" />
+            <div className="w-px h-6 bg-slate-100" />
+            <Cpu className="h-6 w-6 text-slate-300" />
           </div>
         </div>
       </div>
 
-      {/* Editor/Processor Zone */}
-      <div className="space-y-6">
-        <div className="bg-white/90 backdrop-blur-md p-10 rounded-[3rem] border border-sky-100 shadow-2xl space-y-8 relative overflow-hidden flex flex-col h-full">
-          <div className="absolute bottom-0 left-0 w-64 h-64 bg-yellow-50 rounded-full blur-3xl -z-10" />
+      {/* Manual Input / Preview */}
+      <div className="flex flex-col h-full space-y-10">
+        <div className="bg-white/95 backdrop-blur-2xl p-10 rounded-[3.5rem] border border-sky-100 shadow-[0_40px_80px_-20px_rgba(14,165,233,0.08)] space-y-8 relative overflow-hidden flex flex-col h-full group">
+          <div className="absolute top-0 right-0 w-32 h-32 bg-yellow-50 rounded-full blur-2xl -z-10 translate-x-10 -translate-y-10" />
+
           <div className="flex items-center justify-between">
-            <div className="flex items-center gap-4">
-              <div className="p-3 bg-yellow-400 rounded-2xl shadow-lg ring-4 ring-yellow-50">
-                <Cpu className="text-yellow-900 h-6 w-6" />
+            <div className="flex items-center gap-5">
+              <div className="p-4 bg-yellow-400 rounded-3xl shadow-xl ring-8 ring-yellow-50 group-hover:rotate-6 transition-transform">
+                <FileText className="text-yellow-900 h-7 w-7" />
               </div>
-              <h3 className="text-2xl font-black text-slate-900 tracking-tight uppercase">Specification Workshop</h3>
+              <div>
+                <h3 className="text-2xl font-black text-slate-900 tracking-tight leading-none">RFP Terminal</h3>
+                <p className="text-slate-400 text-[10px] font-black uppercase tracking-[0.2em] mt-2">Buffer Sequence</p>
+              </div>
             </div>
-            <button
-              onClick={() => setInputText("")}
-              className="p-3 hover:bg-rose-50 text-slate-300 hover:text-rose-500 rounded-2xl transition"
-            >
-              <X className="h-6 w-6" />
-            </button>
+            <div className={`px-4 py-2 rounded-xl text-[9px] font-black uppercase tracking-widest border ${text.length > 0 ? "bg-emerald-50 text-emerald-600 border-emerald-100" : "bg-slate-50 text-slate-300 border-slate-100"}`}>
+              {text.length > 0 ? "Data Input Confirmed" : "Buffer Empty"}
+            </div>
           </div>
 
-          <div className="flex-grow">
+          <div className="flex-grow flex flex-col relative">
             <textarea
-              value={inputText}
-              onChange={(e) => setInputText(e.target.value)}
-              placeholder="Synchronize RFP plaintext here for neural processing..."
-              className="w-full h-full min-h-[400px] bg-slate-50/50 p-8 rounded-[2.5rem] border border-slate-100 focus:outline-none focus:ring-4 focus:ring-sky-500/5 text-lg leading-relaxed text-slate-800 font-medium resize-none shadow-inner custom-scrollbar"
+              value={text}
+              onChange={(e) => setText(e.target.value)}
+              placeholder="Paste raw RFP content here for immediate neural classification..."
+              className="flex-grow w-full bg-slate-50/50 text-slate-900 p-8 rounded-[2rem] border border-slate-100 focus:outline-none focus:ring-4 focus:ring-sky-500/5 transition-all text-base font-medium leading-relaxed shadow-inner resize-none custom-scrollbar"
             />
+
+            {text.length === 0 && (
+              <div className="absolute inset-0 flex flex-col items-center justify-center text-slate-200 pointer-events-none p-12">
+                <Sparkles className="h-16 w-16 mb-4 opacity-10" />
+                <p className="text-[10px] font-black uppercase tracking-[0.4em] text-center">Neural Hive Awaiting Stream</p>
+              </div>
+            )}
           </div>
 
           <button
-            onClick={() => onTextParsed && onTextParsed(inputText)}
-            disabled={isProcessing || !inputText.trim()}
-            className="w-full btn-primary py-5 text-sm flex items-center justify-center gap-4 active:scale-[0.98] mt-4"
+            onClick={() => onTextParsed && onTextParsed(text)}
+            disabled={isProcessing || !text.trim()}
+            className="w-full btn-primary py-6 relative overflow-hidden group-buttons"
           >
             {isProcessing ? (
-              <>
+              <span className="flex items-center gap-4 justify-center">
                 <span className="animate-spin h-6 w-6 border-4 border-white border-t-transparent rounded-full" />
-                <span>SYNCHRONIZING WITH LLAMA-3.3...</span>
-              </>
+                <span className="uppercase tracking-[0.2em] font-black">Analyzing Data Matrix...</span>
+              </span>
             ) : (
-              <>
-                <PlayCircle className="h-7 w-7" />
-                <span className="text-lg">INITIALIZE RFP AUDIT</span>
-                <Sparkles className="h-5 w-5 animate-pulse" />
-              </>
+              <span className="flex items-center justify-center gap-4">
+                <Zap className="h-6 w-6 fill-current animate-pulse-soft" />
+                <span className="uppercase tracking-[0.2em] font-black">Initiate RFP Extraction</span>
+              </span>
             )}
           </button>
         </div>

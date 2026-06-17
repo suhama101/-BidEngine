@@ -6,7 +6,49 @@ import { Upload, FileText, ArrowRight, Zap, Sparkles, FileScan, ShieldCheck, Ref
 export default function FileUpload({ onTextParsed, isProcessing, initialText = "" }) {
   const [text, setText] = useState(initialText);
   const [dragActive, setDragActive] = useState(false);
+  const [isUploading, setIsUploading] = useState(false);
   const fileInputRef = useRef(null);
+
+  const performFileUpload = async (file) => {
+    if (!file) return;
+
+    setIsUploading(true);
+    const formData = new FormData();
+    formData.append("file", file);
+    formData.append("bidTitle", file.name.replace(/\.[^.]+$/, ""));
+
+    try {
+      const response = await fetch("/api/rfp/upload", {
+        method: "POST",
+        headers: {
+          "Authorization": `Bearer ${localStorage.getItem("bid_engine_token")}`
+        },
+        body: formData,
+      });
+
+      if (!response.ok) {
+        const err = await response.json();
+        throw new Error(err.error || "Upload failed");
+      }
+
+      const data = await response.json();
+      if (onTextParsed) {
+        // Pass the extracted text and the workspace metadata back to App.tsx
+        onTextParsed(data.rawText, data);
+      }
+    } catch (error) {
+      console.error("Upload error:", error);
+      alert("Upload failed: " + error.message);
+    } finally {
+      setIsUploading(false);
+    }
+  };
+
+  const handleFileChange = (e) => {
+    if (e.target.files && e.target.files[0]) {
+      performFileUpload(e.target.files[0]);
+    }
+  };
 
   const handleDrag = (e) => {
     e.preventDefault();
@@ -23,10 +65,11 @@ export default function FileUpload({ onTextParsed, isProcessing, initialText = "
     e.stopPropagation();
     setDragActive(false);
     if (e.dataTransfer.files && e.dataTransfer.files[0]) {
-      // For now we just console log, since real parsing needs backend
-      console.log("File dropped:", e.dataTransfer.files[0].name);
+      performFileUpload(e.dataTransfer.files[0]);
     }
   };
+
+  const isProcessingCombined = isProcessing || isUploading;
 
   return (
     <div className="grid grid-cols-1 lg:grid-cols-2 gap-10 min-h-[600px] animate-in fade-in zoom-in-95 duration-1000" id="file-upload-portal">
@@ -55,18 +98,24 @@ export default function FileUpload({ onTextParsed, isProcessing, initialText = "
             onDragLeave={handleDrag}
             onDragOver={handleDrag}
             onDrop={handleDrop}
-            onClick={() => fileInputRef.current?.click()}
+            onClick={() => !isProcessingCombined && fileInputRef.current?.click()}
             className={`relative border-4 border-dashed rounded-[3rem] p-16 transition-all duration-500 cursor-pointer flex flex-col items-center justify-center space-y-6 group/drop ${dragActive
               ? "bg-sky-50 border-sky-400 scale-[1.02]"
               : "bg-slate-50/50 border-slate-100 hover:border-sky-200 hover:bg-sky-50/30"
-              }`}
+              } ${isProcessingCombined ? "opacity-50 cursor-not-allowed" : ""}`}
           >
-            <input ref={fileInputRef} type="file" className="hidden" />
+            <input ref={fileInputRef} type="file" className="hidden" onChange={handleFileChange} accept=".pdf,.docx,.txt" />
             <div className="p-8 bg-white rounded-[2.5rem] shadow-2xl group-hover/drop:scale-110 group-hover/drop:rotate-6 transition-all duration-500 ring-4 ring-sky-50">
-              <FileScan className={`h-12 w-12 ${dragActive ? 'text-sky-600' : 'text-sky-500'}`} />
+              {isProcessingCombined ? (
+                <div className="animate-spin h-12 w-12 border-4 border-sky-500 border-t-transparent rounded-full" />
+              ) : (
+                <FileScan className={`h-12 w-12 ${dragActive ? 'text-sky-600' : 'text-sky-500'}`} />
+              )}
             </div>
             <div className="space-y-2">
-              <p className="text-sm font-black text-slate-800 uppercase tracking-widest">Drop Master File</p>
+              <p className="text-sm font-black text-slate-800 uppercase tracking-widest">
+                {isProcessingCombined ? "Processing Sequence..." : "Drop Master File"}
+              </p>
               <p className="text-[10px] font-bold text-slate-400 uppercase tracking-[0.2em]">DOCX, PDF, or Plaintext Transmissions</p>
             </div>
           </div>
@@ -119,10 +168,10 @@ export default function FileUpload({ onTextParsed, isProcessing, initialText = "
 
           <button
             onClick={() => onTextParsed && onTextParsed(text)}
-            disabled={isProcessing || !text.trim()}
+            disabled={isProcessingCombined || !text.trim()}
             className="w-full btn-primary py-6 relative overflow-hidden group-buttons"
           >
-            {isProcessing ? (
+            {isProcessingCombined ? (
               <span className="flex items-center gap-4 justify-center">
                 <span className="animate-spin h-6 w-6 border-4 border-white border-t-transparent rounded-full" />
                 <span className="uppercase tracking-[0.2em] font-black">Analyzing Data Matrix...</span>
